@@ -13,7 +13,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Engine.h"
 
-
+#define MAX_GEAR 5
 const FName AEngineBrakePawn::LookUpBinding("LookUp");
 const FName AEngineBrakePawn::LookRightBinding("LookRight");
 
@@ -108,6 +108,8 @@ AEngineBrakePawn::AEngineBrakePawn()
 	GearDisplayColor = FColor(255, 255, 255, 255);
 
 	bInReverseGear = false;
+	//! Engine is not running at the start, we have to start it manually
+	bRunningEngine = false;
 }
 
 void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -126,12 +128,23 @@ void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputCom
 	InputComponent->BindAction("Handbrake", IE_Released, this, &AEngineBrakePawn::OnHandbrakeReleased);
 	InputComponent->BindAction("SwitchCamera", IE_Pressed, this, &AEngineBrakePawn::OnToggleCamera);
 
-	InputComponent->BindAction("ResetVR", IE_Pressed, this, &AEngineBrakePawn::OnResetVR); 
+
+	InputComponent->BindAction("Upshift", IE_Pressed, this, &AEngineBrakePawn::OnUpShift);
+	InputComponent->BindAction("Downshift", IE_Pressed, this, &AEngineBrakePawn::OnDownShift);
+	InputComponent->BindAction("Reverse", IE_Pressed, this, &AEngineBrakePawn::OnReverseGear);
+	InputComponent->BindAction("Neutral", IE_Pressed, this, &AEngineBrakePawn::OnNeutralGear);
+	InputComponent->BindAction("StartEngine", IE_Pressed, this, &AEngineBrakePawn::StartEngine);
 }
 
 void AEngineBrakePawn::MoveForward(float Val)
 {
-	GetVehicleMovementComponent()->SetThrottleInput(Val);
+	//! Only apply throttle if the engine is running, otherwise don't
+	if (bRunningEngine)
+	{
+		if (bInReverseGear)
+			Val = -Val;
+		GetVehicleMovementComponent()->SetThrottleInput(Val);
+	}
 }
 
 void AEngineBrakePawn::MoveRight(float Val)
@@ -162,7 +175,6 @@ void AEngineBrakePawn::EnableIncarView(const bool bState, const bool bForce)
 		
 		if (bState == true)
 		{
-			OnResetVR();
 			Camera->Deactivate();
 			InternalCamera->Activate();
 		}
@@ -182,6 +194,11 @@ void AEngineBrakePawn::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
+	if (bRunningEngine && CheckLowSpeedThreshold()) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Engine Stalled at gear %d and speed %d"),			(int)GetVehicleMovement()->GetCurrentGear(), (int)GetVehicleMovement()->GetForwardSpeed());
+		StallEngine();
+	}
 	// Setup the flag to say we are in reverse gear
 	bInReverseGear = GetVehicleMovement()->GetCurrentGear() < 0;
 	
@@ -192,12 +209,7 @@ void AEngineBrakePawn::Tick(float Delta)
 	SetupInCarHUD();
 
 	bool bHMDActive = false;
-#if HMD_MODULE_INCLUDED
-	if ((GEngine->HMDDevice.IsValid() == true) && ((GEngine->HMDDevice->IsHeadTrackingAllowed() == true) || (GEngine->IsStereoscopic3D() == true)))
-	{
-		bHMDActive = true;
-	}
-#endif // HMD_MODULE_INCLUDED
+
 	if (bHMDActive == false)
 	{
 		if ( (InputComponent) && (bInCarCameraActive == true ))
@@ -221,16 +233,39 @@ void AEngineBrakePawn::BeginPlay()
 	EnableIncarView(bEnableInCar,true);
 }
 
-void AEngineBrakePawn::OnResetVR()
+void AEngineBrakePawn::OnUpShift()
 {
-#if HMD_MODULE_INCLUDED
-	if (GEngine->HMDDevice.IsValid())
+	// Find the current gear we are in
+	int Gear = GetVehicleMovement()->GetCurrentGear();
+	int MaxGear = MAX_GEAR;
+	if (Gear < MaxGear)
 	{
-		GEngine->HMDDevice->ResetOrientationAndPosition();
-		InternalCamera->SetRelativeLocation(InternalCameraOrigin);
-		GetController()->SetControlRotation(FRotator());
+		// See if this works
+		GetVehicleMovement()->SetTargetGear(Gear + 1, true);
+		//GetVehicleMovement()->SetGearUp(true);
 	}
-#endif // HMD_MODULE_INCLUDED
+}
+
+void AEngineBrakePawn::OnDownShift()
+{
+	// Find the current gear we are in
+	int Gear = GetVehicleMovement()->GetCurrentGear();
+	if (Gear > 0)
+	{
+		// See if this works
+		GetVehicleMovement()->SetTargetGear(Gear - 1, true);
+		//GetVehicleMovement()->SetGearUp(true);
+	}
+}
+
+void AEngineBrakePawn::OnNeutralGear()
+{
+	GetVehicleMovement()->SetTargetGear(0, true);
+}
+
+void AEngineBrakePawn::OnReverseGear()
+{
+	GetVehicleMovement()->SetTargetGear(-1, true);
 }
 
 void AEngineBrakePawn::UpdateHUDStrings()
@@ -240,6 +275,9 @@ void AEngineBrakePawn::UpdateHUDStrings()
 
 	// Using FText because this is display text that should be localizable
 	SpeedDisplayString = FText::Format(LOCTEXT("SpeedFormat", "{0} km/h"), FText::AsNumber(KPH_int));
+
+	float RPM = GetVehicleMovement()->GetEngineRotationSpeed();
+	RPMDisplayString = FText::Format(LOCTEXT("SpeedFormat", "{0} RPM"), FText::AsNumber(RPM));
 	
 	if (bInReverseGear == true)
 	{
@@ -250,6 +288,44 @@ void AEngineBrakePawn::UpdateHUDStrings()
 		int32 Gear = GetVehicleMovement()->GetCurrentGear();
 		GearDisplayString = (Gear == 0) ? LOCTEXT("N", "N") : FText::AsNumber(Gear);
 	}	
+}
+
+bool AEngineBrakePawn::CheckLowSpeedThreshold()
+{
+	int Gear = GetVehicleMovement()->GetCurrentGear();
+	if (Gear < 1) return false;
+	//! Translate into km / h 
+	float Speed = GetVehicleMovement()->GetForwardSpeed() * 0.036f;
+
+	UE_LOG(LogTemp, Warning, TEXT("Speed check at gear %d and speed %f, threshold being %d"),		Gear, Speed, MinGearSpeeds[Gear]);
+	return Speed < MinGearSpeeds[Gear];
+}
+
+void AEngineBrakePawn::StallEngine()
+{
+	bRunningEngine = false;
+	// Switch to neutral as the engine stops
+	GetVehicleMovement()->SetTargetGear(0, true);
+	GetVehicleMovement()->SetThrottleInput(0);
+	//! play some sounds and display something
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Engine Stalled"));
+	}
+}
+
+void AEngineBrakePawn::StartEngine()
+{
+	if (!bRunningEngine)
+	{
+		bRunningEngine = true;
+		// TODO: add some sounds
+		// Debug some info to the screen if needed
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Engine Started"));
+		}
+	}
 }
 
 void AEngineBrakePawn::SetupInCarHUD()

@@ -36,6 +36,12 @@ class AEngineBrakePawn : public AWheeledVehicle
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UTextRenderComponent* InCarGear;
 
+	//! Flag specifying whether or not the engine is running
+	/**
+	* Used to simulate real life stalling of the engine when the RPM is too low
+	*/
+	bool bRunningEngine;
+
 	
 public:
 	AEngineBrakePawn();
@@ -47,6 +53,10 @@ public:
 	/** The current gear as a string (R,N, 1,2 etc) */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FText GearDisplayString;
+
+	/** The current gear as a string (R,N, 1,2 etc) */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+	FText RPMDisplayString;
 
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	/** The color of the incar gear text in forward gears */
@@ -90,13 +100,28 @@ public:
 	void OnHandbrakeReleased();
 	/** Switch between cameras */
 	void OnToggleCamera();
-	/** Handle reset VR device */
-	void OnResetVR();
+
+	//! Function used to handle upshifting
+	void OnUpShift();
+	//! Function used to handle downshifting
+	void OnDownShift();
+
+	//! Function used to disengage any gear and put the car in neutral
+	void OnNeutralGear();
+
+	//! Function used to enter reverse gear
+	void OnReverseGear();
 
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
 
 private:
+	//! Minimum threshold speeds for different gears
+	/**
+	*	If the vehicle has is moving below the threshold of the gear engaged,
+	*	the engine will stall, and the player will have to restart it manually
+	*/
+	int MinGearSpeeds[7] = { -1, -1, -1, 15, 25, 40, 70 };
 	/** 
 	 * Activate In-Car camera. Enable camera and sets visibility of incar hud display
 	 *
@@ -110,6 +135,16 @@ private:
 
 	/* Are we on a 'slippery' surface */
 	bool bIsLowFriction;
+
+	//! Checks if the speed is below the current gear's threshold 
+	/*
+	* Returns true if the speed is below the current gear's threshold, false otherwise
+	*/
+	bool CheckLowSpeedThreshold();
+
+	void StallEngine();
+
+	void StartEngine();
 
 
 public:

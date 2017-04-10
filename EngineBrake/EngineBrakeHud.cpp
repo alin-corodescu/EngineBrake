@@ -50,14 +50,18 @@ void AEngineBrakeHud::DrawHUD()
 			FVector2D ScaleVec(HUDYRatio * 1.4f, HUDYRatio * 1.4f);
 
 			// Speed
-			FCanvasTextItem SpeedTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->SpeedDisplayString, HUDFont, FLinearColor::White);
+			/*FCanvasTextItem SpeedTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->SpeedDisplayString, HUDFont, FLinearColor::White);
 			SpeedTextItem.Scale = ScaleVec;
-			Canvas->DrawItem(SpeedTextItem);
+			Canvas->DrawItem(SpeedTextItem);*/
 
 			// Gear
 			FCanvasTextItem GearTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 500.f), Vehicle->GearDisplayString, HUDFont, Vehicle->bInReverseGear == false ? Vehicle->GearDisplayColor : Vehicle->GearDisplayReverseColor);
 			GearTextItem.Scale = ScaleVec;
 			Canvas->DrawItem(GearTextItem);
+
+			FCanvasTextItem RPMTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->RPMDisplayString, HUDFont, FLinearColor::White);
+			RPMTextItem.Scale = ScaleVec;
+			Canvas->DrawItem(RPMTextItem);
 		}
 	}
 }
