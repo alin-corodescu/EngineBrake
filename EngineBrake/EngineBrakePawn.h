@@ -10,6 +10,7 @@ class UInputComponent;
 UCLASS(config=Game)
 class AEngineBrakePawn : public AWheeledVehicle
 {
+
 	GENERATED_BODY()
 
 	/** Spring arm that will offset the camera */
@@ -36,12 +37,20 @@ class AEngineBrakePawn : public AWheeledVehicle
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UTextRenderComponent* InCarGear;
 
+	/** For some reason modifications to this in the editor aren't reflected in the game */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	float ConsumptionCoefficient = 0.00002f;
+
+	//! Pointer to the fuel system component used by this
+	class UFuelSystemComponent* FuelSystem;
+
 	//! Flag specifying whether or not the engine is running
 	/**
 	* Used to simulate real life stalling of the engine when the RPM is too low
 	*/
 	bool bRunningEngine;
 
+	friend class UFuelSystemComponent;
 	
 public:
 	AEngineBrakePawn();
@@ -54,9 +63,13 @@ public:
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FText GearDisplayString;
 
-	/** The current gear as a string (R,N, 1,2 etc) */
+	/** The current RPM as a string */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FText RPMDisplayString;
+
+	/** The current fuel precentage */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+	FText FuelPrecentageDisplayString;
 
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	/** The color of the incar gear text in forward gears */
@@ -90,8 +103,6 @@ public:
 	/** Setup the strings used on the hud */
 	void SetupInCarHUD();
 
-	/** Update the physics material used by the vehicle mesh */
-	void UpdatePhysicsMaterial();
 	/** Handle pressing right */
 	void MoveRight(float Val);
 	/** Handle handbrake pressed */
@@ -111,6 +122,9 @@ public:
 
 	//! Function used to enter reverse gear
 	void OnReverseGear();
+
+	//! Callback functions used by the Fuel Component of this actor to signal lack of fuel
+	void OutOfFuel();
 
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
@@ -146,7 +160,7 @@ private:
 
 	void StartEngine();
 
-
+	bool bOutOfFuel;
 public:
 	/** Returns SpringArm subobject **/
 	FORCEINLINE USpringArmComponent* GetSpringArm() const { return SpringArm; }

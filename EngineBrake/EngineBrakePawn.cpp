@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
 #include "Vehicles/WheeledVehicleMovementComponent4W.h"
+#include "FuelSystemComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine.h"
 
@@ -99,6 +100,12 @@ AEngineBrakePawn::AEngineBrakePawn()
 	InCarGear->SetRelativeScale3D(FVector(1.0f, 0.4f, 0.4f));
 	InCarGear->SetupAttachment(GetMesh());
 	
+
+	FuelSystem = CreateDefaultSubobject<UFuelSystemComponent>(TEXT("FuelSystem"));
+	FuelSystem->SetupConsumptionParameters(this, ConsumptionCoefficient);
+	// hope it is ok
+	this->AddOwnedComponent(FuelSystem);
+
 	// Colors for the incar gear display. One for normal one for reverse
 	GearDisplayReverseColor = FColor(255, 0, 0, 255);
 	GearDisplayColor = FColor(255, 255, 255, 255);
@@ -110,6 +117,8 @@ AEngineBrakePawn::AEngineBrakePawn()
 	bInReverseGear = false;
 	//! Engine is not running at the start, we have to start it manually
 	bRunningEngine = false;
+
+	bOutOfFuel = false;
 }
 
 void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -196,7 +205,8 @@ void AEngineBrakePawn::Tick(float Delta)
 
 	if (bRunningEngine && CheckLowSpeedThreshold()) 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Engine Stalled at gear %d and speed %d"),			(int)GetVehicleMovement()->GetCurrentGear(), (int)GetVehicleMovement()->GetForwardSpeed());
+		UE_LOG(LogTemp, Warning, TEXT("Engine Stalled at gear %d and speed %d"),
+			(int)GetVehicleMovement()->GetCurrentGear(), (int)GetVehicleMovement()->GetForwardSpeed());
 		StallEngine();
 	}
 	// Setup the flag to say we are in reverse gear
@@ -227,9 +237,6 @@ void AEngineBrakePawn::BeginPlay()
 	Super::BeginPlay();
 
 	bool bEnableInCar = false;
-#if HMD_MODULE_INCLUDED
-	bEnableInCar = UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled();
-#endif // HMD_MODULE_INCLUDED
 	EnableIncarView(bEnableInCar,true);
 }
 
@@ -268,6 +275,12 @@ void AEngineBrakePawn::OnReverseGear()
 	GetVehicleMovement()->SetTargetGear(-1, true);
 }
 
+void AEngineBrakePawn::OutOfFuel()
+{
+	bOutOfFuel = true;
+	StallEngine();
+}
+
 void AEngineBrakePawn::UpdateHUDStrings()
 {
 	float KPH = FMath::Abs(GetVehicleMovement()->GetForwardSpeed()) * 0.036f;
@@ -277,7 +290,10 @@ void AEngineBrakePawn::UpdateHUDStrings()
 	SpeedDisplayString = FText::Format(LOCTEXT("SpeedFormat", "{0} km/h"), FText::AsNumber(KPH_int));
 
 	float RPM = GetVehicleMovement()->GetEngineRotationSpeed();
-	RPMDisplayString = FText::Format(LOCTEXT("SpeedFormat", "{0} RPM"), FText::AsNumber(RPM));
+	RPMDisplayString = FText::Format(LOCTEXT("RPMFormat", "{0} RPM"), FText::AsNumber(RPM));
+
+	float FuelPrecentage = FuelSystem->GetFuelPrecentage();
+	FuelPrecentageDisplayString = FText::Format(LOCTEXT("FuelFormat", "{0}% FUEL"), FText::AsNumber(FuelPrecentage));
 	
 	if (bInReverseGear == true)
 	{
@@ -297,7 +313,8 @@ bool AEngineBrakePawn::CheckLowSpeedThreshold()
 	//! Translate into km / h 
 	float Speed = GetVehicleMovement()->GetForwardSpeed() * 0.036f;
 
-	UE_LOG(LogTemp, Warning, TEXT("Speed check at gear %d and speed %f, threshold being %d"),		Gear, Speed, MinGearSpeeds[Gear]);
+	UE_LOG(LogTemp, Warning, TEXT("Speed check at gear %d and speed %f, threshold being %d"),
+		Gear, Speed, MinGearSpeeds[Gear]);
 	return Speed < MinGearSpeeds[Gear];
 }
 
@@ -311,12 +328,13 @@ void AEngineBrakePawn::StallEngine()
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Engine Stalled"));
-	}
+	}
+
 }
 
 void AEngineBrakePawn::StartEngine()
 {
-	if (!bRunningEngine)
+	if (!bRunningEngine && !bOutOfFuel)
 	{
 		bRunningEngine = true;
 		// TODO: add some sounds
@@ -324,7 +342,8 @@ void AEngineBrakePawn::StartEngine()
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Engine Started"));
-		}
+		}
+
 	}
 }
 

@@ -29,17 +29,11 @@ void AEngineBrakeHud::DrawHUD()
 {
 	Super::DrawHUD();
 
-	// Calculate ratio from 720p
-	const float HUDXRatio = Canvas->SizeX / 1280.f;
-	const float HUDYRatio = Canvas->SizeY / 720.f;
+	// Calculate ratio from 1080p
+	const float HUDXRatio = Canvas->SizeX / 1920.f;
+	const float HUDYRatio = Canvas->SizeY / 1080.f;
 
 	bool bWantHUD = true;
-#if HMD_MODULE_INCLUDED
-	if (GEngine->HMDDevice.IsValid() == true)
-	{
-		bWantHUD = GEngine->HMDDevice->IsStereoEnabled();
-	}
-#endif // HMD_MODULE_INCLUDED
 	// We dont want the onscreen hud when using a HMD device	
 	if (bWantHUD == true)
 	{
@@ -50,18 +44,22 @@ void AEngineBrakeHud::DrawHUD()
 			FVector2D ScaleVec(HUDYRatio * 1.4f, HUDYRatio * 1.4f);
 
 			// Speed
-			/*FCanvasTextItem SpeedTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->SpeedDisplayString, HUDFont, FLinearColor::White);
+			FCanvasTextItem SpeedTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->SpeedDisplayString, HUDFont, FLinearColor::White);
 			SpeedTextItem.Scale = ScaleVec;
-			Canvas->DrawItem(SpeedTextItem);*/
+			Canvas->DrawItem(SpeedTextItem);
 
 			// Gear
 			FCanvasTextItem GearTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 500.f), Vehicle->GearDisplayString, HUDFont, Vehicle->bInReverseGear == false ? Vehicle->GearDisplayColor : Vehicle->GearDisplayReverseColor);
 			GearTextItem.Scale = ScaleVec;
 			Canvas->DrawItem(GearTextItem);
 
-			FCanvasTextItem RPMTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->RPMDisplayString, HUDFont, FLinearColor::White);
+			FCanvasTextItem RPMTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 550.f), Vehicle->RPMDisplayString, HUDFont, FLinearColor::White);
 			RPMTextItem.Scale = ScaleVec;
 			Canvas->DrawItem(RPMTextItem);
+
+			FCanvasTextItem FuelTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 600.f), Vehicle->FuelPrecentageDisplayString, HUDFont, FLinearColor::White);
+			FuelTextItem.Scale = ScaleVec;
+			Canvas->DrawItem(FuelTextItem);
 		}
 	}
 }
