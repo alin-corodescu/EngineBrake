@@ -13,6 +13,7 @@
 #include "FuelSystemComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine.h"
+#include "Score/ScoreCalculator.h"
 
 #define MAX_GEAR 5
 const FName AEngineBrakePawn::LookUpBinding("LookUp");
@@ -249,6 +250,21 @@ void AEngineBrakePawn::OnUpShift()
 	{
 		// See if this works
 		GetVehicleMovement()->SetTargetGear(Gear + 1, true);
+		// If we are doing a normal upshift, add score to the total score
+		if (Gear + 1 > 1)
+		{
+			// Compute score depending on the RPM
+			ScoreCalculator* Calculator = ScoreCalculator::GetInstance();
+			UE_LOG(LogTemp, Warning, TEXT("RPM when upshifting: %f"), GetVehicleMovementComponent()->GetEngineRotationSpeed());
+			float ScoreValue = Calculator->ComputeUpshiftScore(GetVehicleMovementComponent()->GetEngineRotationSpeed());
+			UE_LOG(LogTemp, Warning, TEXT("Score Value: %f"), ScoreValue);
+			//GetWorld()->GetFirstPlayerController()->PlayerState->Score += ScoreValue;
+
+			if (GEngine && ScoreValue > 1)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Good upshift"));
+			}
+		}
 		//GetVehicleMovement()->SetGearUp(true);
 	}
 }
@@ -313,8 +329,8 @@ bool AEngineBrakePawn::CheckLowSpeedThreshold()
 	//! Translate into km / h 
 	float Speed = GetVehicleMovement()->GetForwardSpeed() * 0.036f;
 
-	UE_LOG(LogTemp, Warning, TEXT("Speed check at gear %d and speed %f, threshold being %d"),
-		Gear, Speed, MinGearSpeeds[Gear]);
+/*	UE_LOG(LogTemp, Warning, TEXT("Speed check at gear %d and speed %f, threshold being %d"),
+		Gear, Speed, MinGearSpeeds[Gear]);*/
 	return Speed < MinGearSpeeds[Gear];
 }
 

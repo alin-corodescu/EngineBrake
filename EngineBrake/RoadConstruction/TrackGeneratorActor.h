@@ -25,6 +25,7 @@ public:
 
 private:
 	//! Spline component of the track generator
+	UPROPERTY()
 	class USplineComponent* SplineComponent;
 	
 	//! Number of spline points on the spline
@@ -33,6 +34,26 @@ private:
 	//! Array containing the data to be used in all the spline points of the spline
 	UPROPERTY(EditAnywhere)
 	TArray<FRoadData> RoadDataArray;
-	
-	
+
+	//! Mesh to be used by the road
+	UPROPERTY(EditAnywhere)
+	class UStaticMesh* RoadMesh;
+
+	UPROPERTY(EditAnywhere)
+	class UStaticMesh* LeftGuardRailMesh;
+
+	UPROPERTY(EditAnywhere)
+	class UStaticMesh* RightGuardRailMesh;
+
+
+	UPROPERTY(EditAnywhere)
+	bool WantCollision;
+
+	void BuildTrackElement(UStaticMesh* TrackElementMesh, int SplinePointIndex);
+
+	void BuildTrack();
+
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	void PostEditMove(bool bFinished) override;
 };
