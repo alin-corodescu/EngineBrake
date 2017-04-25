@@ -255,17 +255,16 @@ void AEngineBrakePawn::OnUpShift()
 		{
 			// Compute score depending on the RPM
 			ScoreCalculator* Calculator = ScoreCalculator::GetInstance();
-			UE_LOG(LogTemp, Warning, TEXT("RPM when upshifting: %f"), GetVehicleMovementComponent()->GetEngineRotationSpeed());
+
 			float ScoreValue = Calculator->ComputeUpshiftScore(GetVehicleMovementComponent()->GetEngineRotationSpeed());
-			UE_LOG(LogTemp, Warning, TEXT("Score Value: %f"), ScoreValue);
-			//GetWorld()->GetFirstPlayerController()->PlayerState->Score += ScoreValue;
+
+			// Now update the score somehow
 
 			if (GEngine && ScoreValue > 1)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Good upshift"));
 			}
 		}
-		//GetVehicleMovement()->SetGearUp(true);
 	}
 }
 

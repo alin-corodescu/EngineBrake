@@ -3,7 +3,7 @@
 #include "GameFramework/GameMode.h"
 #include "EngineBrakeGameMode.generated.h"
 
-UCLASS(minimalapi)
+UCLASS()
 class AEngineBrakeGameMode : public AGameMode
 {
 	GENERATED_BODY()
