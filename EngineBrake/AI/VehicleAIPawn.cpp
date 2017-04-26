@@ -4,9 +4,12 @@
 #include "VehicleAIPawn.h"
 #include "EngineBrakeWheelFront.h"
 #include "EngineBrakeWheelRear.h"
+#include "VehicleAIController.h"
+
 
 /* AI Include */
 #include "Perception/PawnSensingComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
 
 AVehicleAIPawn::AVehicleAIPawn()
 {
@@ -43,8 +46,14 @@ AVehicleAIPawn::AVehicleAIPawn()
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
 	PawnSensingComp->SetPeripheralVisionAngle(60.0f);
 	PawnSensingComp->SightRadius = 2000;
+	PawnSensingComp->bOnlySensePlayers = true;
 
 	// We need to set the AI Controller class
+	AIControllerClass = AVehicleAIController::StaticClass();
+
+	// Instantiate the behaviour tree here
+	BehaviorTree = NULL; // placeholder until I build a proper behaviour tree
+
 }
 
 void AVehicleAIPawn::BeginPlay()
@@ -59,9 +68,18 @@ void AVehicleAIPawn::BeginPlay()
 	// Set up the AI controller
 }
 
-void AVehicleAIPawn::OnDetectVehicle(APawn * vehicle)
+void AVehicleAIPawn::OnDetectVehicle(APawn * Vehicle)
 {
 	// Announce the controller that we are seeing things
+	AVehicleAIController* Controller = Cast<AVehicleAIController>(GetController());
+	if (Controller)
+	{
+		Controller->SetObstacle(Vehicle);
+	}
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Detected a vehicle"));
+	}
 }
 
 void AVehicleAIPawn::Tick(float Delta)

@@ -25,5 +25,10 @@ public:
 	virtual void BeginPlay() override;
 	// End Actor interface
 	
-	void OnDetectVehicle(APawn* vehicle);
+	//! Function called when another vehicle has been detected
+	void OnDetectVehicle(APawn* Vehicle);
+
+	//! Reference to the behaviour tree used by this vehicle
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	class UBehaviorTree* BehaviorTree;
 };
