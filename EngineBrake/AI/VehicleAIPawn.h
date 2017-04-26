@@ -12,6 +12,10 @@ UCLASS()
 class ENGINEBRAKE_API AVehicleAIPawn : public AWheeledVehicle
 {
 	GENERATED_BODY()
+private:
+	//! Pawn sensing component used to sense the player / other vehicles
+	UPROPERTY(EditAnywhere, Category = "AI")
+	class UPawnSensingComponent* PawnSensingComp = NULL;
 public:
 	AVehicleAIPawn();
 	
@@ -21,5 +25,5 @@ public:
 	virtual void BeginPlay() override;
 	// End Actor interface
 	
-
+	void OnDetectVehicle(APawn* vehicle);
 };

@@ -5,6 +5,8 @@
 #include "EngineBrakeWheelFront.h"
 #include "EngineBrakeWheelRear.h"
 
+/* AI Include */
+#include "Perception/PawnSensingComponent.h"
 
 AVehicleAIPawn::AVehicleAIPawn()
 {
@@ -35,12 +37,31 @@ AVehicleAIPawn::AVehicleAIPawn()
 	Vehicle4W->WheelSetups[3].WheelClass = UEngineBrakeWheelRear::StaticClass();
 	Vehicle4W->WheelSetups[3].BoneName = FName("Wheel_Rear_Right");
 	Vehicle4W->WheelSetups[3].AdditionalOffset = FVector(0.f, 12.f, 0.f);
+
+
+	/* Sensing component. */
+	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
+	PawnSensingComp->SetPeripheralVisionAngle(60.0f);
+	PawnSensingComp->SightRadius = 2000;
+
+	// We need to set the AI Controller class
 }
 
 void AVehicleAIPawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (PawnSensingComp)
+	{
+		// Set up the callback when we see a vehicle
+		PawnSensingComp->OnSeePawn.AddDynamic(this, &AVehicleAIPawn::OnDetectVehicle);
+	}
 	// Set up the AI controller
+}
+
+void AVehicleAIPawn::OnDetectVehicle(APawn * vehicle)
+{
+	// Announce the controller that we are seeing things
 }
 
 void AVehicleAIPawn::Tick(float Delta)
