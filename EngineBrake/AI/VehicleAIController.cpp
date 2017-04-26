@@ -48,3 +48,10 @@ void AVehicleAIController::SetObstacle(APawn * Obstacle)
 	}
 }
 
+APawn* AVehicleAIController::GetObstacle()
+{
+	if (BlackboardComp)
+	{
+		return Cast<APawn>(BlackboardComp->GetValueAsObject(ObstacleKeyName));
+	}
+}

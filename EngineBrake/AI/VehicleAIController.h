@@ -29,4 +29,6 @@ private:
 
 public:
 	void SetObstacle(APawn* obstacle);
+
+	APawn* GetObstacle();
 };
