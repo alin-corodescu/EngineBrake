@@ -14,8 +14,8 @@ class ENGINEBRAKE_API AVehicleAIPawn : public AWheeledVehicle
 	GENERATED_BODY()
 private:
 	//! Pawn sensing component used to sense the player / other vehicles
-	UPROPERTY(EditAnywhere, Category = "AI")
-	class UPawnSensingComponent* PawnSensingComp = NULL;
+	UPROPERTY(VisibleAnywhere, Category = "AI")
+	class UPawnSensingComponent* PawnSensingComp;
 public:
 	AVehicleAIPawn();
 	
@@ -26,9 +26,10 @@ public:
 	// End Actor interface
 	
 	//! Function called when another vehicle has been detected
+	UFUNCTION()
 	void OnDetectVehicle(APawn* Vehicle);
 
 	//! Reference to the behaviour tree used by this vehicle
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	UPROPERTY(VisibleAnywhere, Category = "AI")
 	class UBehaviorTree* BehaviorTree;
 };

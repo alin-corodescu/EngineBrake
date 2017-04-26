@@ -26,10 +26,10 @@ void AVehicleAIController::Possess(APawn * InPawn)
 	AVehicleAIPawn* Vehicle = Cast<AVehicleAIPawn>(InPawn);
 	if (Vehicle)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Possession happened"));
 		BlackboardComp->InitializeBlackboard(*Vehicle->BehaviorTree->BlackboardAsset);
-
 	}
-	
+
 	BehaviorComp->StartTree(*Vehicle->BehaviorTree);
 }
 
@@ -52,6 +52,10 @@ APawn* AVehicleAIController::GetObstacle()
 {
 	if (BlackboardComp)
 	{
-		return Cast<APawn>(BlackboardComp->GetValueAsObject(ObstacleKeyName));
+		APawn* Obstacle = Cast<APawn>(BlackboardComp->GetValueAsObject(ObstacleKeyName));
+		// Clear the value after getting the reference to it, will probably think of something else to modify it
+		BlackboardComp->ClearValue(ObstacleKeyName);
+		return Obstacle;
 	}
+	return nullptr;
 }
