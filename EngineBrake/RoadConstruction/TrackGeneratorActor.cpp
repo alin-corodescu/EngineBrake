@@ -86,7 +86,7 @@ void ATrackGeneratorActor::BuildTrackElement(UStaticMesh * TrackElementMesh, int
 		EndLocation,
 		EndTangent
 	);
-
+	
 	UE_LOG(LogTemp, Warning, TEXT("Setting static mesh"));
 
 	USplineMeshComponent* SplineMesh = ConstructObject<USplineMeshComponent>(USplineMeshComponent::StaticClass(), this);
