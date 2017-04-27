@@ -20,6 +20,7 @@ USplineMeshComponent * SplineMeshesComponentsPool::CreateHiddenSplineMeshCompone
 void SplineMeshesComponentsPool::CreateComponents(AActor* Creator,int Number, UStaticMesh * RoadMesh, UStaticMesh * LGuard, UStaticMesh * RGuard)
 {
 	NumberOfComponents = Number;
+	UE_LOG(LogTemp, Warning, TEXT("CreateComponents called for %d"),NumberOfComponents);
 	RoadMeshes.SetNum(Number);
 	LeftGuardRailMeshes.SetNum(Number);
 	RightGuardRailMeshes.SetNum(Number);

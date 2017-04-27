@@ -79,7 +79,7 @@ void AEndlessTrackGenerator::BuildTrack()
 
 void AEndlessTrackGenerator::RebuildTrack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Rebuild track called"));
+	//UE_LOG(LogTemp, Warning, TEXT("Rebuild track called"));
 	int NumberOfSplinePoints = SplineComponent->GetNumberOfSplinePoints();
 	TArray<FVector> SplinePointsLocation;
 	SplinePointsLocation.SetNum(NumberOfSplinePoints);
@@ -87,8 +87,9 @@ void AEndlessTrackGenerator::RebuildTrack()
 	for (int i = 0; i < NumberOfSplinePoints - 1; i++)
 		SplinePointsLocation[i] = SplineComponent->GetLocationAtSplinePoint(i + 1, ESplineCoordinateSpace::Local);
 
-	SplinePointsLocation[NumberOfSplinePoints - 1] = SplinePointsLocation[NumberOfSplinePoints - 2];
-	SplinePointsLocation[NumberOfSplinePoints - 1].X += DistanceBetweenPoints;
+	// Here handle the logic of generating the next point
+
+	SplinePointsLocation[NumberOfSplinePoints - 1] = GenerateNextPoint();
 
 	SplineComponent->SetSplineLocalPoints(SplinePointsLocation);
 	FVector Location, Tangent;
@@ -97,4 +98,41 @@ void AEndlessTrackGenerator::RebuildTrack()
 	SplineMeshesPool->UpdateEnds(Location, Tangent);
 
 	LastRebuild = GetWorld()->TimeSeconds;
+}
+
+FVector AEndlessTrackGenerator::GenerateNextPoint()
+{
+	static int tester = 0;
+	tester++;
+	enum Directions 
+	{
+		Straight, Left, Right, Up, Down
+	};
+	// Would be more ellegant with a map, but in a hurry
+	float UpDownAngle[5] = { 0.0f, 0.0f, 0.0f, UpDownAngleLimit, -UpDownAngleLimit };
+	float LeftRightAngle[5] = { 0.0f, LeftRightAngleLimit, -LeftRightAngleLimit, 0.0f, 0.0f };
+	int Index = SplineComponent->GetNumberOfSplinePoints() - 1;
+	FVector UpVector, RightVector, ForwardVector;
+	UpVector = SplineComponent->GetUpVectorAtSplinePoint(Index, ESplineCoordinateSpace::Local);
+	UE_LOG(LogTemp, Warning, TEXT("Up Vector is %f %f %f"), UpVector.X, UpVector.Y, UpVector.Z);
+	RightVector = SplineComponent->GetRightVectorAtSplinePoint(Index, ESplineCoordinateSpace::Local);
+	UE_LOG(LogTemp, Warning, TEXT("Right Vector is %f %f %f"), RightVector.X, RightVector.Y, RightVector.Z);
+	// Forward vector is the cross product of up and right vectors
+	ForwardVector = -FVector::CrossProduct(UpVector, RightVector);
+	UE_LOG(LogTemp, Warning, TEXT("Forward Vector is %f %f %f"), ForwardVector.X, ForwardVector.Y, ForwardVector.Z);
+
+	// Scale up the forward vector
+	ForwardVector *= DistanceBetweenPoints;
+
+	// Rotate the vector
+	int DirectionIdx;
+	DirectionIdx = FMath::RandHelper(5);
+
+	// Rotate around the Right vector for up/ down orientation
+	ForwardVector = ForwardVector.RotateAngleAxis(UpDownAngle[DirectionIdx], RightVector);
+	
+	// Rotate around the Up vector for left right orinetation
+	ForwardVector = ForwardVector.RotateAngleAxis(LeftRightAngle[DirectionIdx], UpVector);
+
+	return SplineComponent->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::Local) + ForwardVector;
 }

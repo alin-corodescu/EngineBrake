@@ -28,7 +28,7 @@ private:
 	class UStaticMesh* RightGuardRailMesh;
 
 	UPROPERTY(EditAnywhere)
-	int NumberOfSplinePoints = 5;
+	int NumberOfSplinePoints = 10;
 
 	UPROPERTY(EditAnywhere)
 	int DistanceBetweenPoints = 500;
@@ -40,6 +40,12 @@ private:
 	UPROPERTY(EditAnywhere)
 	float RebuildingInterval = 2;
 
+	UPROPERTY(EditAnywhere)
+	float UpDownAngleLimit = 20;
+
+	UPROPERTY(EditAnywhere)
+	float LeftRightAngleLimit = 20;
+
 	void BuildTrack();
 
 	//! Function used to rebuild the track
@@ -47,6 +53,8 @@ private:
 	*	Deletes the first element of the track and adds another to the end
 	*/
 	void RebuildTrack();
+
+	FVector GenerateNextPoint();
 public:	
 	// Sets default values for this actor's properties
 	AEndlessTrackGenerator();
