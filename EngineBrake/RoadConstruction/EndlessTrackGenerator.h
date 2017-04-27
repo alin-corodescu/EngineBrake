@@ -10,6 +10,9 @@ class ENGINEBRAKE_API AEndlessTrackGenerator : public AActor
 {
 	GENERATED_BODY()
 private:
+
+	class SplineMeshesComponentsPool* SplineMeshesPool;
+
 	//! Spline component of the track generator
 	UPROPERTY()
 	class USplineComponent* SplineComponent;
@@ -25,7 +28,7 @@ private:
 	class UStaticMesh* RightGuardRailMesh;
 
 	UPROPERTY(EditAnywhere)
-	int InitialSplinePoints = 5;
+	int NumberOfSplinePoints = 5;
 
 	UPROPERTY(EditAnywhere)
 	int DistanceBetweenPoints = 500;
@@ -38,8 +41,6 @@ private:
 	float RebuildingInterval = 2;
 
 	void BuildTrack();
-
-	void BuildTrackElement(UStaticMesh* TrackElementMesh, int SplinePointIndex);
 
 	//! Function used to rebuild the track
 	/**

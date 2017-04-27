@@ -63,6 +63,8 @@ void SplineMeshesComponentsPool::UpdateEnds(const FVector & Location, const FVec
 	StartTangent = RoadMeshes[LastIndex]->GetEndTangent();
 
 	RoadMeshes[FirstIndex]->SetStartAndEnd(StartLocation, StartTangent, EndLocation, EndTangent, true);
+	LeftGuardRailMeshes[FirstIndex]->SetStartAndEnd(StartLocation, StartTangent, EndLocation, EndTangent, true);
+	RightGuardRailMeshes[FirstIndex]->SetStartAndEnd(StartLocation, StartTangent, EndLocation, EndTangent, true);
 
 	LastIndex = FirstIndex;
 

@@ -6,7 +6,7 @@
 #include "Classes/Components/SplineComponent.h"
 #include "Classes/Components/SplineMeshComponent.h"
 #include "Classes/Engine/StaticMesh.h"
-
+#include "SplineMeshesComponentsPool.h"
 
 
 
@@ -20,11 +20,14 @@ AEndlessTrackGenerator::AEndlessTrackGenerator()
 	RootComponent = SplineComponent;
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> RoadMeshFinder(TEXT("StaticMesh'/Game/Props/RoadMesh.RoadMesh'"));
-
+	RoadMesh = RoadMeshFinder.Object;
 	ConstructorHelpers::FObjectFinder<UStaticMesh> RightGuardRailMeshFinder(TEXT("StaticMesh'/Game/Props/R_GuardRail.R_GuardRail'"));
-	RightGuardRailMesh = RoadMeshFinder.Object;
+	RightGuardRailMesh = RightGuardRailMeshFinder.Object;
 	ConstructorHelpers::FObjectFinder<UStaticMesh> LeftGuardRailMeshFinder(TEXT("StaticMesh'/Game/Props/L_GuardRail.L_GuardRail'"));
-	LeftGuardRailMesh = RoadMeshFinder.Object;
+	LeftGuardRailMesh = LeftGuardRailMeshFinder.Object;
+
+	SplineMeshesPool = new SplineMeshesComponentsPool();
+	SplineMeshesPool->CreateComponents(this, NumberOfSplinePoints - 1, RoadMesh, RightGuardRailMesh, LeftGuardRailMesh);
 }
 
 // Called when the game starts or when spawned
@@ -34,9 +37,9 @@ void AEndlessTrackGenerator::BeginPlay()
 
 	SplineComponent->SetDrawDebug(true);
 	TArray<FVector> SplinePointsLocation;
-	SplinePointsLocation.SetNum(InitialSplinePoints);
+	SplinePointsLocation.SetNum(NumberOfSplinePoints);
 	SplinePointsLocation[0] = FVector(0, 0, 0);
-	for (int i = 1; i < InitialSplinePoints; i++)
+	for (int i = 1; i < NumberOfSplinePoints; i++)
 	{
 		SplinePointsLocation[i] = SplinePointsLocation[i - 1];
 		SplinePointsLocation[i].X += DistanceBetweenPoints;
@@ -64,45 +67,14 @@ void AEndlessTrackGenerator::BuildTrack()
 	LastRebuild = GetWorld()->TimeSeconds;
 	// Store number of spline points
 	int SplinePointsNumber = SplineComponent->GetNumberOfSplinePoints();
+	TArray<FVector> Locations, Tangents;
+	Locations.SetNum(NumberOfSplinePoints);
+	Tangents.SetNum(NumberOfSplinePoints);
+	for (int i = 0; i < SplinePointsNumber; i++)
+		// Construct the TArray with initial positions and tangents
+		SplineComponent->GetLocalLocationAndTangentAtSplinePoint(i, Locations[i], Tangents[i]);
 
-	for (int i = 0; i < SplinePointsNumber - 1; i++)
-	{
-		BuildTrackElement(RoadMesh, i);
-		BuildTrackElement(LeftGuardRailMesh, i);
-		BuildTrackElement(RightGuardRailMesh, i);
-	}
-}
-
-void AEndlessTrackGenerator::BuildTrackElement(UStaticMesh * TrackElementMesh, int SplinePointIndex)
-{
-	int NextSplinePointIndex = SplinePointIndex + 1;
-	FVector StartLocation, EndLocation, StartTangent, EndTangent;
-	SplineComponent->GetLocalLocationAndTangentAtSplinePoint
-	(
-		SplinePointIndex,
-		StartLocation,
-		StartTangent
-	);
-
-	SplineComponent->GetLocalLocationAndTangentAtSplinePoint
-	(
-		NextSplinePointIndex,
-		EndLocation,
-		EndTangent
-	);
-
-	//UE_LOG(LogTemp, Warning, TEXT("Setting static mesh"));
-
-	USplineMeshComponent* SplineMesh = ConstructObject<USplineMeshComponent>(USplineMeshComponent::StaticClass(), this);
-	SplineMesh->SetMobility(EComponentMobility::Movable);
-	SplineMesh->AttachParent = SplineComponent;
-	SplineMesh->SetCollisionProfileName(FName("BlockAll"));
-	SplineMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	SplineMesh->CreationMethod = EComponentCreationMethod::UserConstructionScript;
-	SplineMesh->SetStaticMesh(TrackElementMesh);
-	SplineMesh->SetStartAndEnd(StartLocation, StartTangent, EndLocation, EndTangent, true);
-
-	FinishAndRegisterComponent(SplineMesh);
+	SplineMeshesPool->SetInitialPositions(Locations, Tangents);
 }
 
 void AEndlessTrackGenerator::RebuildTrack()
@@ -119,6 +91,10 @@ void AEndlessTrackGenerator::RebuildTrack()
 	SplinePointsLocation[NumberOfSplinePoints - 1].X += DistanceBetweenPoints;
 
 	SplineComponent->SetSplineLocalPoints(SplinePointsLocation);
+	FVector Location, Tangent;
+	SplineComponent->GetLocalLocationAndTangentAtSplinePoint(NumberOfSplinePoints - 1, Location, Tangent);
 
-	BuildTrack();
+	SplineMeshesPool->UpdateEnds(Location, Tangent);
+
+	LastRebuild = GetWorld()->TimeSeconds;
 }
