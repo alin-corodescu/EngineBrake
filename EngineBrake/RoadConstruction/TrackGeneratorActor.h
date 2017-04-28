@@ -25,7 +25,7 @@ public:
 
 private:
 	//! Spline component of the track generator
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class USplineComponent* SplineComponent;
 	
 	//! Number of spline points on the spline

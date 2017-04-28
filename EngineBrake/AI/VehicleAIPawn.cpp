@@ -88,6 +88,16 @@ void AVehicleAIPawn::OnDetectVehicle(APawn * Vehicle)
 	}
 }
 
+USplineComponent * AVehicleAIPawn::GetFollowedPath()
+{
+	return SplineToFollow;
+}
+
+void AVehicleAIPawn::SetPathToFollow(USplineComponent * Spline)
+{
+	this->SplineToFollow = Spline;
+}
+
 void AVehicleAIPawn::Tick(float Delta)
 {
 	Super::Tick(Delta);

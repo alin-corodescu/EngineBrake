@@ -16,6 +16,11 @@ private:
 	//! Pawn sensing component used to sense the player / other vehicles
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	class UPawnSensingComponent* PawnSensingComp;
+
+	UPROPERTY(EditAnywhere)
+	class USplineComponent* SplineToFollow;
+
+
 public:
 	AVehicleAIPawn();
 	
@@ -32,4 +37,13 @@ public:
 	//! Reference to the behaviour tree used by this vehicle
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	class UBehaviorTree* BehaviorTree;
+
+	//! Getter for the SplineToFollow
+	USplineComponent* GetFollowedPath();
+
+	//! Setter for the spline path to folow
+	void SetPathToFollow(USplineComponent* Spline);
+
+	UPROPERTY(EditAnywhere)
+	float LookAheadSeconds = 1;
 };

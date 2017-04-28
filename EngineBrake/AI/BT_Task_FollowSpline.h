@@ -15,5 +15,7 @@ class ENGINEBRAKE_API UBT_Task_FollowSpline : public UBTTask_BlackboardBase
 	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	
-	
+	float CalculateSteering(class AVehicleAIPawn* ControlledVehicle);
+
+	float CalculateThrottle(class AVehicleAIPawn* ControlledVehicle);
 };
