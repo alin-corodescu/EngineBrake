@@ -4,6 +4,7 @@
 #include "BT_Task_AvoidObstacle.h"
 #include "VehicleAIPawn.h"
 #include "VehicleAIController.h"
+#include "../VectorUtils.h"
 
 EBTNodeResult::Type UBT_Task_AvoidObstacle::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -19,8 +20,12 @@ EBTNodeResult::Type UBT_Task_AvoidObstacle::ExecuteTask(UBehaviorTreeComponent& 
 	if (!ControlledVehicle)
 		return EBTNodeResult::Failed;
 
-	// Brake to avoid impact
-	ControlledVehicle->GetVehicleMovementComponent()->SetThrottleInput(-1);
+	if (ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed() > 0.1)
+		// Brake to avoid impact
+		ControlledVehicle->GetVehicleMovementComponent()->SetThrottleInput(-1);
+	else
+		// Stop braking when the vehicle stops
+		ControlledVehicle->GetVehicleMovementComponent()->SetThrottleInput(0);
 
 	// Adjust steering
 	ControlledVehicle->GetVehicleMovementComponent()->SetSteeringInput(CalculateSteering(Obstacle, ControlledVehicle));
@@ -30,7 +35,24 @@ EBTNodeResult::Type UBT_Task_AvoidObstacle::ExecuteTask(UBehaviorTreeComponent& 
 
 float UBT_Task_AvoidObstacle::CalculateSteering(AActor * Obstacle, AActor * ControlledVehicle)
 {
+	// Store the forward vector
+	FVector ForwardVector = ControlledVehicle->GetActorForwardVector();
 
-	// Placeholder for the moment
-	return 0.0f;
+	// Direction to the obstacle
+	FVector DirectionToObstacle = ControlledVehicle->GetActorLocation() - Obstacle->GetActorLocation();
+
+	DirectionToObstacle.Normalize();
+
+	FVector SteeringVector = ForwardVector - DirectionToObstacle;
+
+	// Right Vector corresponds to 1, -1 for the -RightVector
+	FVector RightVector = ControlledVehicle->GetActorRightVector();
+	FVector LeftVector = -RightVector;
+	float RightCosine = VectorUtils::CosineAngleBetweenVectors(SteeringVector, RightVector);
+	float LeftCosine = VectorUtils::CosineAngleBetweenVectors(SteeringVector, LeftVector);
+	UE_LOG(LogTemp, Warning, TEXT("Cosines are: Left = %f ; Right = %f"), LeftCosine, RightCosine);
+
+	if (RightCosine < LeftCosine)
+		return -1.0f;
+	return 1.0f;
 }
