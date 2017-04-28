@@ -55,6 +55,9 @@ private:
 	void RebuildTrack();
 
 	FVector GenerateNextPoint();
+
+	//! Counters for directional turns, used to handle the problem of overlapping tracks
+	int LeftTurns = 0, DownTurns = 0;
 public:	
 	// Sets default values for this actor's properties
 	AEndlessTrackGenerator();

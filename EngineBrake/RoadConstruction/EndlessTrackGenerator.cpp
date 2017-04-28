@@ -8,8 +8,7 @@
 #include "Classes/Engine/StaticMesh.h"
 #include "SplineMeshesComponentsPool.h"
 
-
-
+#define THRESHOLD 0.15f
 // Sets default values
 AEndlessTrackGenerator::AEndlessTrackGenerator()
 {
@@ -114,25 +113,71 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 	int Index = SplineComponent->GetNumberOfSplinePoints() - 1;
 	FVector UpVector, RightVector, ForwardVector;
 	UpVector = SplineComponent->GetUpVectorAtSplinePoint(Index, ESplineCoordinateSpace::Local);
-	UE_LOG(LogTemp, Warning, TEXT("Up Vector is %f %f %f"), UpVector.X, UpVector.Y, UpVector.Z);
 	RightVector = SplineComponent->GetRightVectorAtSplinePoint(Index, ESplineCoordinateSpace::Local);
-	UE_LOG(LogTemp, Warning, TEXT("Right Vector is %f %f %f"), RightVector.X, RightVector.Y, RightVector.Z);
 	// Forward vector is the cross product of up and right vectors
 	ForwardVector = -FVector::CrossProduct(UpVector, RightVector);
-	UE_LOG(LogTemp, Warning, TEXT("Forward Vector is %f %f %f"), ForwardVector.X, ForwardVector.Y, ForwardVector.Z);
+
 
 	// Scale up the forward vector
 	ForwardVector *= DistanceBetweenPoints;
 
-	// Rotate the vector
-	int DirectionIdx;
-	DirectionIdx = FMath::RandHelper(5);
+
+	float AngleOnZ = 0, AngleOnX = 0;
+
+	// Decide if we go up, down or straight on the Z axis
+	float RandomNumber = FMath::FRand();
+	if (RandomNumber < THRESHOLD)
+	{
+		// Don't allow more than 2 up turns
+		if (DownTurns > -2) 
+		{
+			// Go up
+			UE_LOG(LogTemp, Warning, TEXT("UP"));
+			AngleOnZ = UpDownAngleLimit;
+			DownTurns--;
+		}
+	}
+	else if (RandomNumber < 2.0f * THRESHOLD)
+	{
+		if (DownTurns < 2)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DOWN"));
+			AngleOnZ = -UpDownAngleLimit;
+			DownTurns++;
+		}
+	}
+
+
+	// Decide if we go left or right
+	RandomNumber = FMath::FRand();
+	if (RandomNumber < THRESHOLD)
+	{
+		// Don't allow more than 2 turns
+		if (LeftTurns > -2)
+		{
+			// Go Right
+			UE_LOG(LogTemp, Warning, TEXT("Right"));
+			AngleOnX = LeftRightAngleLimit;
+			LeftTurns--;
+		}
+	}
+	else if (RandomNumber < 2.0f * THRESHOLD)
+	{
+		if (LeftTurns < 2)
+		{
+			// Go left
+			UE_LOG(LogTemp, Warning, TEXT("Left"));
+			AngleOnX = -LeftRightAngleLimit;
+			LeftTurns++;
+		}
+	}
+
 
 	// Rotate around the Right vector for up/ down orientation
-	ForwardVector = ForwardVector.RotateAngleAxis(UpDownAngle[DirectionIdx], RightVector);
+	ForwardVector = ForwardVector.RotateAngleAxis(AngleOnZ, RightVector);
 	
 	// Rotate around the Up vector for left right orinetation
-	ForwardVector = ForwardVector.RotateAngleAxis(LeftRightAngle[DirectionIdx], UpVector);
+	ForwardVector = ForwardVector.RotateAngleAxis(AngleOnX , UpVector);
 
 	return SplineComponent->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::Local) + ForwardVector;
 }
