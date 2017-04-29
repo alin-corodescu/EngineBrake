@@ -9,6 +9,7 @@ UCLASS()
 class ENGINEBRAKE_API AEndlessTrackGenerator : public AActor
 {
 	GENERATED_BODY()
+	friend class ASpawner;
 private:
 
 	class SplineMeshesComponentsPool* SplineMeshesPool;

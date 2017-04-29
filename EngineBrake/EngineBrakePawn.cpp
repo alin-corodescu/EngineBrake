@@ -14,6 +14,8 @@
 #include "Engine/SkeletalMesh.h"
 #include "Engine.h"
 #include "Score/ScoreCalculator.h"
+#include "Spawner.h"
+#include "FuelSystem/FuelPickup.h"
 
 #define MAX_GEAR 5
 const FName AEngineBrakePawn::LookUpBinding("LookUp");
@@ -116,10 +118,16 @@ AEngineBrakePawn::AEngineBrakePawn()
 	GearDisplayColor = FColor(255, 255, 255, 255);
 
 	bInReverseGear = false;
+
 	//! Engine is not running at the start, we have to start it manually
 	bRunningEngine = false;
 
 	bOutOfFuel = false;
+
+
+	// Set up collision callback
+	OnActorBeginOverlap.AddDynamic(this, &AEngineBrakePawn::OnOverlap);
+	GetMesh()->OnComponentHit.AddDynamic(this, &AEngineBrakePawn::OnCollision);
 }
 
 void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -137,13 +145,14 @@ void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputCom
 	InputComponent->BindAction("Handbrake", IE_Pressed, this, &AEngineBrakePawn::OnHandbrakePressed);
 	InputComponent->BindAction("Handbrake", IE_Released, this, &AEngineBrakePawn::OnHandbrakeReleased);
 	InputComponent->BindAction("SwitchCamera", IE_Pressed, this, &AEngineBrakePawn::OnToggleCamera);
-
+	InputComponent->BindAction("Request_Fuel", IE_Pressed, this, &AEngineBrakePawn::OnFuelRequest);
 
 	InputComponent->BindAction("Upshift", IE_Pressed, this, &AEngineBrakePawn::OnUpShift);
 	InputComponent->BindAction("Downshift", IE_Pressed, this, &AEngineBrakePawn::OnDownShift);
 	InputComponent->BindAction("Reverse", IE_Pressed, this, &AEngineBrakePawn::OnReverseGear);
 	InputComponent->BindAction("Neutral", IE_Pressed, this, &AEngineBrakePawn::OnNeutralGear);
 	InputComponent->BindAction("StartEngine", IE_Pressed, this, &AEngineBrakePawn::StartEngine);
+	InputComponent->BindAction("Request_Fuel", IE_Pressed, this, &AEngineBrakePawn::OnFuelRequest);
 }
 
 void AEngineBrakePawn::MoveForward(float Val)
@@ -175,6 +184,11 @@ void AEngineBrakePawn::OnHandbrakeReleased()
 void AEngineBrakePawn::OnToggleCamera()
 {
 	EnableIncarView(!bInCarCameraActive);
+}
+
+void AEngineBrakePawn::OnFuelRequest()
+{
+	SpawnerRef->SpawnFuelPickup();
 }
 
 void AEngineBrakePawn::EnableIncarView(const bool bState, const bool bForce)
@@ -294,6 +308,22 @@ void AEngineBrakePawn::OutOfFuel()
 {
 	bOutOfFuel = true;
 	StallEngine();
+}
+
+void AEngineBrakePawn::OnCollision(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
+{
+	this->Destroy();
+}
+
+void AEngineBrakePawn::OnOverlap(AActor * OverlappedActor, AActor * OtherActor)
+{
+	if (OtherActor->IsA(AFuelPickup::StaticClass()))
+		this->FuelSystem->ResetFuelLevel();
+}
+
+void AEngineBrakePawn::SetSpawner(ASpawner * Spawner)
+{
+	this->SpawnerRef = Spawner;
 }
 
 void AEngineBrakePawn::UpdateHUDStrings()

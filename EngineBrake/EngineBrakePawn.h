@@ -10,7 +10,7 @@ class UInputComponent;
 UCLASS(config=Game)
 class AEngineBrakePawn : public AWheeledVehicle
 {
-
+	friend class ASpawner;
 	GENERATED_BODY()
 
 	/** Spring arm that will offset the camera */
@@ -51,6 +51,8 @@ class AEngineBrakePawn : public AWheeledVehicle
 	bool bRunningEngine;
 
 	friend class UFuelSystemComponent;
+
+	class ASpawner* SpawnerRef;
 	
 public:
 	AEngineBrakePawn();
@@ -112,6 +114,9 @@ public:
 	/** Switch between cameras */
 	void OnToggleCamera();
 
+	//! Called when the player requests fuel
+	void OnFuelRequest();
+
 	//! Function used to handle upshifting
 	void OnUpShift();
 	//! Function used to handle downshifting
@@ -128,6 +133,8 @@ public:
 
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
+
+	void SetSpawner(ASpawner* Spawner);
 
 private:
 	//! Minimum threshold speeds for different gears
@@ -161,6 +168,13 @@ private:
 	void StartEngine();
 
 	bool bOutOfFuel;
+
+	UFUNCTION()
+	void OnCollision(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit);
+
+	UFUNCTION()
+	void OnOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
 public:
 	/** Returns SpringArm subobject **/
 	FORCEINLINE USpringArmComponent* GetSpringArm() const { return SpringArm; }
