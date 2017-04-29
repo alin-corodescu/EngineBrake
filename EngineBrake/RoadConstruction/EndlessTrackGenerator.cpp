@@ -61,6 +61,11 @@ void AEndlessTrackGenerator::Tick( float DeltaTime )
 	}
 }
 
+USplineComponent * AEndlessTrackGenerator::GetSplineComponent()
+{
+	return SplineComponent;
+}
+
 void AEndlessTrackGenerator::BuildTrack()
 {	
 	LastRebuild = GetWorld()->TimeSeconds;

@@ -5,6 +5,7 @@
 #include "EngineBrakeWheelFront.h"
 #include "EngineBrakeWheelRear.h"
 #include "VehicleAIController.h"
+#include "../RoadConstruction/EndlessTrackGenerator.h"
 
 
 /* AI Include */
@@ -88,17 +89,21 @@ void AVehicleAIPawn::OnDetectVehicle(APawn * Vehicle)
 	}
 }
 
-USplineComponent * AVehicleAIPawn::GetFollowedPath()
+AEndlessTrackGenerator * AVehicleAIPawn::GetFollowedPath()
 {
-	return SplineToFollow;
+	return RoadToFollow;
 }
 
-void AVehicleAIPawn::SetPathToFollow(USplineComponent * Spline)
+void AVehicleAIPawn::SetPathToFollow(AEndlessTrackGenerator * RoadGenerator)
 {
-	this->SplineToFollow = Spline;
+	this->RoadToFollow = RoadGenerator;
 }
 
 void AVehicleAIPawn::Tick(float Delta)
 {
 	Super::Tick(Delta);
+
+	// Add pawn sensing range to be higher
+	PawnSensingComp->SightRadius = GetVehicleMovementComponent()->GetForwardSpeed() * 5;
+	if (PawnSensingComp->SightRadius < 2000) PawnSensingComp->SightRadius = 2000;
 }

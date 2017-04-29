@@ -18,7 +18,7 @@ private:
 	class UPawnSensingComponent* PawnSensingComp;
 
 	UPROPERTY(EditAnywhere)
-	class USplineComponent* SplineToFollow;
+	class AEndlessTrackGenerator* RoadToFollow;
 
 
 public:
@@ -39,11 +39,11 @@ public:
 	class UBehaviorTree* BehaviorTree;
 
 	//! Getter for the SplineToFollow
-	USplineComponent* GetFollowedPath();
+	AEndlessTrackGenerator* GetFollowedPath();
 
 	//! Setter for the spline path to folow
-	void SetPathToFollow(USplineComponent* Spline);
+	void SetPathToFollow(AEndlessTrackGenerator* RoadGenerator);
 
 	UPROPERTY(EditAnywhere)
-	float LookAheadSeconds = 1;
+	float LookAheadMiliSeconds = 1000;
 };
