@@ -381,6 +381,10 @@ void AEngineBrakePawn::StallEngine()
 	// Switch to neutral as the engine stops
 	GetVehicleMovement()->SetTargetGear(0, true);
 	GetVehicleMovement()->SetThrottleInput(0);
+
+	// Score penalty for engine stalling
+	PlayerState->Score -= 100.0f;
+
 	//! play some sounds and display something
 	if (GEngine)
 	{
