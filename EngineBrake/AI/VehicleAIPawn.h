@@ -20,9 +20,21 @@ private:
 	UPROPERTY(EditAnywhere)
 	class AEndlessTrackGenerator* RoadToFollow;
 
+	/** Audio component for the engine sound */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UAudioComponent* EngineSoundComponent;
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit);
+
+	USoundBase* ExplosionSound = NULL;
+
+	UParticleSystem* Explosion = NULL;
 
 public:
 	AVehicleAIPawn();
+
+	~AVehicleAIPawn();
 	
 	// Begin Actor interface
 	virtual void Tick(float Delta) override;

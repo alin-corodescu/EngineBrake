@@ -53,9 +53,15 @@ class AEngineBrakePawn : public AWheeledVehicle
 	friend class UFuelSystemComponent;
 
 	class ASpawner* SpawnerRef;
+
+	USoundBase* ExplosionSound;
+
+	UParticleSystem* Explosion;
 	
 public:
 	AEngineBrakePawn();
+
+	~AEngineBrakePawn();
 
 	/** The current speed as a string eg 10 km/h */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
@@ -180,6 +186,11 @@ private:
 
 	UFUNCTION()
 	void OnOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+	/** Audio component for the engine sound */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UAudioComponent* EngineSoundComponent;
+
 
 public:
 	/** Returns SpringArm subobject **/

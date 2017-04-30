@@ -138,7 +138,32 @@ AEngineBrakePawn::AEngineBrakePawn()
 	OnActorBeginOverlap.AddDynamic(this, &AEngineBrakePawn::OnOverlap);
 	GetMesh()->OnComponentHit.AddDynamic(this, &AEngineBrakePawn::OnCollision);
 
+	// Setup the audio component and allocate it a sound cue
+	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCue(TEXT("SoundCue'/Game/VehicleAdv/Sound/Engine_Loop_Cue.Engine_Loop_Cue'"));
+	EngineSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("EngineSound"));
+	EngineSoundComponent->SetSound(SoundCue.Object);
+	EngineSoundComponent->SetupAttachment(GetMesh());
 
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ExplosionFinder(TEXT("ParticleSystem'/Game/StarterContent/Particles/P_Explosion.P_Explosion'"));
+	if (ExplosionFinder.Succeeded())
+	{
+		Explosion= ExplosionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> ExplosionSoundFinder(TEXT("SoundCue'/Game/StarterContent/Audio/Explosion_Cue.Explosion_Cue'"));
+	if (ExplosionSoundFinder.Succeeded())
+	{
+		ExplosionSound = ExplosionSoundFinder.Object;
+	}
+}
+
+AEngineBrakePawn::~AEngineBrakePawn()
+{
+	if (Explosion && ExplosionSound) {
+		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
+		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
+	}
 }
 
 void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -261,6 +286,10 @@ void AEngineBrakePawn::Tick(float Delta)
 
 	// Now update the score somehow
 	PlayerState->Score += ScoreValue;
+
+	// Pass the engine RPM to the sound component
+	float RPMToAudioScale = 2500.0f / GetVehicleMovement()->GetEngineMaxRotationSpeed();
+	EngineSoundComponent->SetFloatParameter("RPM", GetVehicleMovement()->GetEngineRotationSpeed()*RPMToAudioScale);
 }
 
 void AEngineBrakePawn::BeginPlay()
@@ -332,7 +361,16 @@ void AEngineBrakePawn::OnCollision(UPrimitiveComponent * HitComp, AActor * Other
 {
 	// Don't destory on collision with the track elements, just when colliding with other vehicles
 	if (OtherActor->IsA(AVehicleAIPawn::StaticClass()))
-		this->Destroy();
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
+		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
+		Camera->DetachFromParent(true);
+		//FVector CameraPosition = GetActorLocation() + FVector(0, 0, 2000);
+		//Camera->SetWorldLocationAndRotation(CameraPosition, (CameraPosition - GetActorLocation()).Rotation());
+		GetMesh()->SetVisibility(false);
+		//OtherActor->Destroy();
+		//this->Destroy();
+	}
 }
 
 void AEngineBrakePawn::OnOverlap(AActor * OverlappedActor, AActor * OtherActor)

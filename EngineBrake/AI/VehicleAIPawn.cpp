@@ -6,11 +6,24 @@
 #include "EngineBrakeWheelRear.h"
 #include "VehicleAIController.h"
 #include "../RoadConstruction/EndlessTrackGenerator.h"
+#include "../EngineBrakePawn.h"
 
 
 /* AI Include */
 #include "Perception/PawnSensingComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
+
+void AVehicleAIPawn::OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
+{
+	if (OtherActor->IsA(this->StaticClass()) || OtherActor->IsA(AEngineBrakePawn::StaticClass()))
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
+		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
+		GetMesh()->SetVisibility(false);
+		this->Destroy();
+		//OtherActor->Destroy();
+	}
+}
 
 AVehicleAIPawn::AVehicleAIPawn()
 {
@@ -21,6 +34,7 @@ AVehicleAIPawn::AVehicleAIPawn()
 	static ConstructorHelpers::FClassFinder<UObject> AnimBPClass(TEXT("/Game/Vehicle/Sedan/Sedan_AnimBP"));
 	GetMesh()->SetAnimInstanceClass(AnimBPClass.Class);
 
+	GetMesh()->OnComponentHit.AddDynamic(this, &AVehicleAIPawn::OnHit);
 	// Simulation
 	UWheeledVehicleMovementComponent4W* Vehicle4W = CastChecked<UWheeledVehicleMovementComponent4W>(GetVehicleMovement());
 
@@ -65,6 +79,32 @@ AVehicleAIPawn::AVehicleAIPawn()
 	if (BT.Succeeded())
 	{
 		BehaviorTree = BT.Object;
+	}
+
+	// Setup the audio component and allocate it a sound cue
+	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCue(TEXT("SoundCue'/Game/VehicleAdv/Sound/Engine_Loop_Cue.Engine_Loop_Cue'"));
+	EngineSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("EngineSound"));
+	EngineSoundComponent->SetSound(SoundCue.Object);
+	EngineSoundComponent->SetupAttachment(GetMesh());
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ExplosionFinder(TEXT("ParticleSystem'/Game/StarterContent/Particles/P_Explosion.P_Explosion'"));
+	if (ExplosionFinder.Succeeded())
+	{
+		Explosion = ExplosionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> ExplosionSoundFinder(TEXT("SoundCue'/Game/StarterContent/Audio/Explosion_Cue.Explosion_Cue'"));
+	if (ExplosionSoundFinder.Succeeded())
+	{
+		ExplosionSound = ExplosionSoundFinder.Object;
+	}
+}
+
+AVehicleAIPawn::~AVehicleAIPawn()
+{
+	if (Explosion && ExplosionSound) {
+		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
+		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
 	}
 }
 
@@ -114,4 +154,8 @@ void AVehicleAIPawn::Tick(float Delta)
 	// Add pawn sensing range to be higher
 	PawnSensingComp->SightRadius = GetVehicleMovementComponent()->GetForwardSpeed() * 5;
 	if (PawnSensingComp->SightRadius < 2000) PawnSensingComp->SightRadius = 2000;
+
+	// Pass the engine RPM to the sound component
+	float RPMToAudioScale = 2500.0f / GetVehicleMovement()->GetEngineMaxRotationSpeed();
+	EngineSoundComponent->SetFloatParameter("RPM", GetVehicleMovement()->GetEngineRotationSpeed()*RPMToAudioScale);
 }
