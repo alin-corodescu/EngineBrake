@@ -60,6 +60,10 @@ void AEngineBrakeHud::DrawHUD()
 			FCanvasTextItem FuelTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 600.f), Vehicle->FuelPrecentageDisplayString, HUDFont, FLinearColor::White);
 			FuelTextItem.Scale = ScaleVec;
 			Canvas->DrawItem(FuelTextItem);
+
+			FCanvasTextItem ScoreTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 650.f), Vehicle->ScoreDisplayString, HUDFont, FLinearColor::White);
+			ScoreTextItem.Scale = ScaleVec;
+			Canvas->DrawItem(ScoreTextItem);
 		}
 	}
 }

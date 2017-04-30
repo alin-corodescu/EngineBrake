@@ -18,6 +18,8 @@ public:
 
 	float ComputeUpshiftScore(float RPM);
 
+	float ComputeTickingScore(float Delta);
+
 	static ScoreCalculator* GetInstance() {
 		if (instance == NULL)
 			instance = new ScoreCalculator();

@@ -41,7 +41,7 @@ void UFuelSystemComponent::TickComponent( float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 
-	if (Parent->bRunningEngine && FuelLevel > 0)
+	if (Parent->bRunningEngine && FuelLevel > 0 && Parent->bHasThrottleInput)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Component Tick is actually being called"));
 

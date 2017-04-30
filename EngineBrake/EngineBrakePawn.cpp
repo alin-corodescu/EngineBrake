@@ -16,6 +16,7 @@
 #include "Score/ScoreCalculator.h"
 #include "Spawner.h"
 #include "FuelSystem/FuelPickup.h"
+#include "AI/VehicleAIPawn.h"
 
 #define MAX_GEAR 5
 const FName AEngineBrakePawn::LookUpBinding("LookUp");
@@ -152,7 +153,6 @@ void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputCom
 	InputComponent->BindAction("Reverse", IE_Pressed, this, &AEngineBrakePawn::OnReverseGear);
 	InputComponent->BindAction("Neutral", IE_Pressed, this, &AEngineBrakePawn::OnNeutralGear);
 	InputComponent->BindAction("StartEngine", IE_Pressed, this, &AEngineBrakePawn::StartEngine);
-	InputComponent->BindAction("Request_Fuel", IE_Pressed, this, &AEngineBrakePawn::OnFuelRequest);
 }
 
 void AEngineBrakePawn::MoveForward(float Val)
@@ -160,10 +160,13 @@ void AEngineBrakePawn::MoveForward(float Val)
 	//! Only apply throttle if the engine is running, otherwise don't
 	if (bRunningEngine)
 	{
+		bHasThrottleInput = true;
 		if (bInReverseGear)
 			Val = -Val;
 		GetVehicleMovementComponent()->SetThrottleInput(Val);
+		return;
 	}
+	bHasThrottleInput = false;
 }
 
 void AEngineBrakePawn::MoveRight(float Val)
@@ -216,7 +219,15 @@ void AEngineBrakePawn::EnableIncarView(const bool bState, const bool bForce)
 
 void AEngineBrakePawn::Tick(float Delta)
 {
+	// Hope the input component ticks after this
+	//bHasThrottleInput = false;
+
 	Super::Tick(Delta);
+
+	//if (InputComponent->GetAxisValue("MoveForward")) 
+	//	bHasThrottleInput = true;
+	//else bHasThrottleInput = false;
+
 
 	if (bRunningEngine && CheckLowSpeedThreshold()) 
 	{
@@ -233,18 +244,13 @@ void AEngineBrakePawn::Tick(float Delta)
 	// Set the string in the incar hud
 	SetupInCarHUD();
 
-	bool bHMDActive = false;
+	// Compute score depending on the RPM
+	ScoreCalculator* Calculator = ScoreCalculator::GetInstance();
 
-	if (bHMDActive == false)
-	{
-		if ( (InputComponent) && (bInCarCameraActive == true ))
-		{
-			FRotator HeadRotation = InternalCamera->RelativeRotation;
-			HeadRotation.Pitch += InputComponent->GetAxisValue(LookUpBinding);
-			HeadRotation.Yaw += InputComponent->GetAxisValue(LookRightBinding);
-			InternalCamera->RelativeRotation = HeadRotation;
-		}
-	}
+	float ScoreValue = Calculator->ComputeTickingScore(Delta);
+
+	// Now update the score somehow
+	PlayerState->Score += ScoreValue;
 }
 
 void AEngineBrakePawn::BeginPlay()
@@ -273,6 +279,7 @@ void AEngineBrakePawn::OnUpShift()
 			float ScoreValue = Calculator->ComputeUpshiftScore(GetVehicleMovementComponent()->GetEngineRotationSpeed());
 
 			// Now update the score somehow
+			PlayerState->Score += ScoreValue;
 
 			if (GEngine && ScoreValue > 1)
 			{
@@ -297,6 +304,7 @@ void AEngineBrakePawn::OnDownShift()
 void AEngineBrakePawn::OnNeutralGear()
 {
 	GetVehicleMovement()->SetTargetGear(0, true);
+	//GetVehicleMovement()->SetTargetGear(0, false);
 }
 
 void AEngineBrakePawn::OnReverseGear()
@@ -312,7 +320,9 @@ void AEngineBrakePawn::OutOfFuel()
 
 void AEngineBrakePawn::OnCollision(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
 {
-	this->Destroy();
+	// Don't destory on collision with the track elements, just when colliding with other vehicles
+	if (OtherActor->IsA(AVehicleAIPawn::StaticClass()))
+		this->Destroy();
 }
 
 void AEngineBrakePawn::OnOverlap(AActor * OverlappedActor, AActor * OtherActor)
@@ -339,6 +349,8 @@ void AEngineBrakePawn::UpdateHUDStrings()
 
 	float FuelPrecentage = FuelSystem->GetFuelPrecentage();
 	FuelPrecentageDisplayString = FText::Format(LOCTEXT("FuelFormat", "{0}% FUEL"), FText::AsNumber(FuelPrecentage));
+
+	ScoreDisplayString = FText::Format(LOCTEXT("Score", "Score : {0}"), FText::AsNumber(PlayerState->Score));
 	
 	if (bInReverseGear == true)
 	{

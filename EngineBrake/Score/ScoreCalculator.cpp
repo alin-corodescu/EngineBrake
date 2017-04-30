@@ -7,6 +7,7 @@
 #define LOW_RPM 3000.0f
 #define HIGH_RPM 4000.0f
 #define UPSHIFT_SCORE 100.0f
+#define TICK_SCORE_SECOND 10.0f
 ScoreCalculator* ScoreCalculator::instance = NULL;
 
 ScoreCalculator::ScoreCalculator()
@@ -25,4 +26,9 @@ float ScoreCalculator::ComputeUpshiftScore(float RPM)
 		// Good shift occured
 		return UPSHIFT_SCORE * ScoreMultiplier;
 	return 0.0f;
+}
+
+float ScoreCalculator::ComputeTickingScore(float Delta)
+{
+	return TICK_SCORE_SECOND * Delta * ScoreMultiplier;
 }

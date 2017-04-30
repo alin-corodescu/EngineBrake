@@ -73,6 +73,10 @@ public:
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FText FuelPrecentageDisplayString;
 
+	/** The current fuel precentage */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+	FText ScoreDisplayString;
+
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	/** The color of the incar gear text in forward gears */
 	FColor	GearDisplayColor;
@@ -91,6 +95,8 @@ public:
 
 	/** Initial offset of incar camera */
 	FVector InternalCameraOrigin;
+
+	bool bHasThrottleInput;
 	// Begin Pawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End Pawn interface
