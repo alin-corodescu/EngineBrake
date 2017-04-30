@@ -20,6 +20,9 @@ class ENGINEBRAKE_API ASpawner : public AActor
 	//! Generates a spawning location in relation with the current player location
 	FVector GenerateSpawningLocation(float Offset);
 
+	//! Computes the Rotation 
+	FRotator ComputeRotation(FVector Location);
+
 	class UWorld* World;	
 
 	//! TimerHandle for AI Vehicle spawning timer

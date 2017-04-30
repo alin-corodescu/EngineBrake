@@ -16,7 +16,7 @@ void ASpawner::SpawnFuelPickup()
 	// Spawn a Fuel pickup 
 	FVector Location = GenerateSpawningLocation(FUEL_OFFSET);
 
-	World->SpawnActor<AFuelPickup>(Location, FRotator::ZeroRotator);
+	World->SpawnActor<AFuelPickup>(Location, ComputeRotation(Location));
 }
 
 void ASpawner::SpawnAIVehicle()
@@ -24,10 +24,12 @@ void ASpawner::SpawnAIVehicle()
 	FVector Location = GenerateSpawningLocation(VEHICLE_OFFSET);
 	// Spawn it higher so it doesn't spawn inside the road mesh
 	Location.Z += VEHICLE_Z_OFFSET;
-	int RandomRotationChooser = FMath::RandHelper(2);
-	FRotator Rotation(0, RandomRotationChooser * 180, 0);
+	//int RandomRotationChooser = FMath::RandHelper(2);
+	//FRotator Rotation(0, RandomRotationChooser * 180, 0);
 
-	AVehicleAIPawn* AIVehicle = World->SpawnActor<AVehicleAIPawn>(Location, Rotation);
+	Location.Z += 1500;
+
+	AVehicleAIPawn* AIVehicle = World->SpawnActor<AVehicleAIPawn>(Location, ComputeRotation(Location));
 
 	AIVehicle->SetPathToFollow(TrackGenerator);
 
@@ -49,6 +51,13 @@ FVector ASpawner::GenerateSpawningLocation(float Offset)
 
 	return Location;
 }
+
+FRotator ASpawner::ComputeRotation(FVector Location)
+{
+	FRotator result = TrackGenerator->GetSplineComponent()->FindRotationClosestToWorldLocation(Location, ESplineCoordinateSpace::World);
+	return result;
+}
+
 
 // Sets default values
 ASpawner::ASpawner()
