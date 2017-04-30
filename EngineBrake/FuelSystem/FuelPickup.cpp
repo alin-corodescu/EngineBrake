@@ -34,6 +34,7 @@ AFuelPickup::AFuelPickup()
 	MeshComponent->OnComponentHit.AddDynamic(this, &AFuelPickup::OnHit);
 
 	this->RootComponent = MeshComponent;
+	MeshComponent->SetCollisionProfileName("OverlapAllDynamic");
 	OnActorBeginOverlap.AddDynamic(this, &AFuelPickup::OnBeginOverlap);
 }
 

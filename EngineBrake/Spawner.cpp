@@ -64,14 +64,25 @@ void ASpawner::BeginPlay()
 	Super::BeginPlay();
 	// Spawn a new Endless Road Generator
 	World = GetWorld();
-
+	if (World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("World is set up correctly"));
+	}
 	TrackGenerator = World->SpawnActor<AEndlessTrackGenerator>(
 		FVector(0, 0, 0), FRotator(0, 0, 0));
 
-	PlayerPawn = World->SpawnActor<AEngineBrakePawn>
-		(FVector(2000, 0, 0), FRotator(0, 0, 0));
+	/*World->SpawnActor<APlayerStart>
+		(FVector(2000, 0, 200), FRotator(0, 0, 0));*/
+ 
+	PlayerPawn = Cast<AEngineBrakePawn>(UGameplayStatics::GetPlayerPawn(World, 0));
+	PlayerPawn->SetActorLocation(FVector(5000, 0, 200), false);
+	PlayerPawn->SetActorRotation(FRotator::ZeroRotator);
 
-	GetWorld()->GetTimerManager().SetTimer(AISpawning_Timer, this, &ASpawner::SpawnAIVehicle, FMath::RandRange(20, 30));
+	PlayerPawn->SetSpawner(this);
+
+	//UE_LOG(LogTemp, Warning, TEXT("PlayerPawn was spawned"));
+
+	World->GetTimerManager().SetTimer(AISpawning_Timer, this, &ASpawner::SpawnAIVehicle, FMath::RandRange(2, 3));
 
 }
 

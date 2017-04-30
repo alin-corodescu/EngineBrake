@@ -49,8 +49,16 @@ AVehicleAIPawn::AVehicleAIPawn()
 	PawnSensingComp->SightRadius = 2000;
 	PawnSensingComp->bOnlySensePlayers = false;
 
+
+
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
 	// We need to set the AI Controller class
 	AIControllerClass = AVehicleAIController::StaticClass();
+
+
+	//Controller = CreateAbstractDefaultSubobject<AVehicleAIController>(TEXT("AIController"));
+
 
 	// Instantiate the behaviour tree here
 	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BT(TEXT("BehaviorTree'/Game/AI_Blueprints/VehicleAI_BT.VehicleAI_BT'"));
@@ -58,7 +66,6 @@ AVehicleAIPawn::AVehicleAIPawn()
 	{
 		BehaviorTree = BT.Object;
 	}
-
 }
 
 void AVehicleAIPawn::BeginPlay()
@@ -72,11 +79,12 @@ void AVehicleAIPawn::BeginPlay()
 		PawnSensingComp->OnSeePawn.AddDynamic(this, &AVehicleAIPawn::OnDetectVehicle);
 	}
 	// Set up the AI controller
+	//Controller->Possess(this);
 }
 
 void AVehicleAIPawn::OnDetectVehicle(APawn * Vehicle)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Detected something"));
+
 	// Announce the controller that we are seeing things
 	AVehicleAIController* Controller = Cast<AVehicleAIController>(GetController());
 	if (Controller)

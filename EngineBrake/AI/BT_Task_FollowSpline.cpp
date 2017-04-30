@@ -21,14 +21,14 @@ EBTNodeResult::Type UBT_Task_FollowSpline::ExecuteTask(UBehaviorTreeComponent& O
 	AVehicleAIController* Controller = Cast<AVehicleAIController>(OwnerComp.GetAIOwner());
 	if (!Controller)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Controller failed"));
+		//UE_LOG(LogTemp, Warning, TEXT("Controller failed"));
 		return EBTNodeResult::Failed;
 	}
 
 	AVehicleAIPawn* ControlledVehicle = Cast<AVehicleAIPawn>(Controller->GetPawn());
 	if (!ControlledVehicle)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Vehicle failed"));
+		//UE_LOG(LogTemp, Warning, TEXT("Vehicle failed"));
 		return EBTNodeResult::Failed;
 	}
 
@@ -67,7 +67,7 @@ float UBT_Task_FollowSpline::CalculateThrottle(AVehicleAIPawn * ControlledVehicl
 {
 
 	//return 0.5f;
-	UE_LOG(LogTemp, Warning, TEXT("Current Speed : %f"), ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed());
+	//UE_LOG(LogTemp, Warning, TEXT("Current Speed : %f"), ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed());
 	// Apply the logic only if we are moving at a considerable speed
 	if (ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed() > 300)
 	{

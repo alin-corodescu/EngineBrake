@@ -8,5 +8,6 @@
 AEngineBrakeGameMode::AEngineBrakeGameMode()
 {
 	DefaultPawnClass = AEngineBrakePawn::StaticClass();
+	PlayerStateClass = APlayerState::StaticClass();
 	HUDClass = AEngineBrakeHud::StaticClass();
 }

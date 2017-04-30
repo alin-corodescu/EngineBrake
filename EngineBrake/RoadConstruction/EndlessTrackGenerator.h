@@ -32,7 +32,7 @@ private:
 	int NumberOfSplinePoints = 10;
 
 	UPROPERTY(EditAnywhere)
-	int DistanceBetweenPoints = 500;
+	int DistanceBetweenPoints = 2000;
 
 	//! Time of the last rebuilding of the track
 	float LastRebuild;
@@ -42,10 +42,10 @@ private:
 	float RebuildingInterval = 2;
 
 	UPROPERTY(EditAnywhere)
-	float UpDownAngleLimit = 20;
+	float UpDownAngleLimit = 10;
 
 	UPROPERTY(EditAnywhere)
-	float LeftRightAngleLimit = 20;
+	float LeftRightAngleLimit = 30;
 
 	void BuildTrack();
 

@@ -26,6 +26,10 @@ const FName AEngineBrakePawn::LookRightBinding("LookRight");
 
 AEngineBrakePawn::AEngineBrakePawn()
 {
+	// A bit of a hack, but need it
+	//this->AutoPossessPlayer = EAutoReceiveInput::Player0;
+	//this->PlayerState = CreateDefaultSubobject<APlayerState>(TEXT("PlayerState"));
+
 	// Car mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh(TEXT("/Game/Vehicle/Sedan/Sedan_SkelMesh.Sedan_SkelMesh"));
 	GetMesh()->SetSkeletalMesh(CarMesh.Object);
@@ -53,6 +57,10 @@ AEngineBrakePawn::AEngineBrakePawn()
 	Vehicle4W->WheelSetups[3].WheelClass = UEngineBrakeWheelRear::StaticClass();
 	Vehicle4W->WheelSetups[3].BoneName = FName("Wheel_Rear_Right");
 	Vehicle4W->WheelSetups[3].AdditionalOffset = FVector(0.f, 12.f, 0.f);
+
+
+	Vehicle4W->DifferentialSetup.DifferentialType = EVehicleDifferential4W::LimitedSlip_4W;
+	Vehicle4W->TransmissionSetup.bUseGearAutoBox = false;
 
 	// Create a spring arm component
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm0"));
@@ -129,6 +137,8 @@ AEngineBrakePawn::AEngineBrakePawn()
 	// Set up collision callback
 	OnActorBeginOverlap.AddDynamic(this, &AEngineBrakePawn::OnOverlap);
 	GetMesh()->OnComponentHit.AddDynamic(this, &AEngineBrakePawn::OnCollision);
+
+
 }
 
 void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -383,6 +393,7 @@ void AEngineBrakePawn::StallEngine()
 	GetVehicleMovement()->SetThrottleInput(0);
 
 	// Score penalty for engine stalling
+	// It's a constant because later in the game progress it will be hard to focus on engine stuff, so let it be less punishing
 	PlayerState->Score -= 100.0f;
 
 	//! play some sounds and display something

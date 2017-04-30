@@ -137,7 +137,7 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 		if (DownTurns > -2) 
 		{
 			// Go up
-			UE_LOG(LogTemp, Warning, TEXT("UP"));
+			//UE_LOG(LogTemp, Warning, TEXT("UP"));
 			AngleOnZ = UpDownAngleLimit;
 			DownTurns--;
 		}
@@ -146,7 +146,7 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 	{
 		if (DownTurns < 2)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("DOWN"));
+			//UE_LOG(LogTemp, Warning, TEXT("DOWN"));
 			AngleOnZ = -UpDownAngleLimit;
 			DownTurns++;
 		}
@@ -161,7 +161,7 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 		if (LeftTurns > -2)
 		{
 			// Go Right
-			UE_LOG(LogTemp, Warning, TEXT("Right"));
+			//UE_LOG(LogTemp, Warning, TEXT("Right"));
 			AngleOnX = LeftRightAngleLimit;
 			LeftTurns--;
 		}
@@ -171,7 +171,7 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 		if (LeftTurns < 2)
 		{
 			// Go left
-			UE_LOG(LogTemp, Warning, TEXT("Left"));
+			//UE_LOG(LogTemp, Warning, TEXT("Left"));
 			AngleOnX = -LeftRightAngleLimit;
 			LeftTurns++;
 		}
