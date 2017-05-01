@@ -4,6 +4,7 @@
 #include "BT_Task_AvoidObstacle.h"
 #include "VehicleAIPawn.h"
 #include "VehicleAIController.h"
+#include "../EngineBrakePawn.h"
 #include "../VectorUtils.h"
 
 EBTNodeResult::Type UBT_Task_AvoidObstacle::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -20,13 +21,8 @@ EBTNodeResult::Type UBT_Task_AvoidObstacle::ExecuteTask(UBehaviorTreeComponent& 
 	if (!ControlledVehicle)
 		return EBTNodeResult::Failed;
 
-	if (ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed() > 0.1)
-		// Brake to avoid impact
-		ControlledVehicle->GetVehicleMovementComponent()->SetThrottleInput(-1);
-	else
-		// Stop braking when the vehicle stops
-		ControlledVehicle->GetVehicleMovementComponent()->SetThrottleInput(0);
 
+	ControlledVehicle->GetVehicleMovementComponent()->SetThrottleInput(CalculateThrottle(Obstacle, ControlledVehicle));
 	// Adjust steering
 	ControlledVehicle->GetVehicleMovementComponent()->SetSteeringInput(CalculateSteering(Obstacle, ControlledVehicle));
 	return EBTNodeResult::Succeeded;
@@ -45,14 +41,18 @@ float UBT_Task_AvoidObstacle::CalculateSteering(AActor * Obstacle, AActor * Cont
 
 	FVector SteeringVector = ForwardVector - DirectionToObstacle;
 
-	// Right Vector corresponds to 1, -1 for the -RightVector
-	FVector RightVector = ControlledVehicle->GetActorRightVector();
-	FVector LeftVector = -RightVector;
-	float RightCosine = VectorUtils::CosineAngleBetweenVectors(SteeringVector, RightVector);
-	float LeftCosine = VectorUtils::CosineAngleBetweenVectors(SteeringVector, LeftVector);
-	UE_LOG(LogTemp, Warning, TEXT("Cosines are: Left = %f ; Right = %f"), LeftCosine, RightCosine);
+	FRotator VehicleRotator = SteeringVector.Rotation();
 
-	if (RightCosine < LeftCosine)
-		return -1.0f;
-	return 1.0f;
+	//UE_LOG(LogTemp, Warning, TEXT("Vehicle Rotator Yaw is %f:"), VehicleRotator.Yaw);
+	if (VehicleRotator.Yaw < 0)
+		return 1;
+	return -1;
+}
+float UBT_Task_AvoidObstacle::CalculateThrottle(AActor* Obstacle, AVehicleAIPawn* ControlledVehicle)
+{
+	if (ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed() > 0.1)
+		// Brake to avoid impact
+		return -1;
+	else
+		return 0;
 }

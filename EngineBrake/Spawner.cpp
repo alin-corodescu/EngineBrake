@@ -14,7 +14,7 @@
 #define FUEL_OFFSET 10000.0f
 #define VEHICLE_OFFSET 20000.0f
 #define VEHICLE_Z_OFFSET 200
-#define DISTANCE_THRESHOLD 5000.0f
+#define DISTANCE_THRESHOLD 1000.0f
 void ASpawner::SpawnFuelPickup()
 {
 	// Spawn a Fuel pickup 
@@ -115,13 +115,14 @@ void ASpawner::Tick( float DeltaTime )
 	// Check if the pawn is still on track
 	FVector SplineLocation = TrackGenerator->GetSplineComponent()->FindLocationClosestToWorldLocation(PlayerPawn->GetActorLocation(),ESplineCoordinateSpace::World);
 	float Distance = FVector::Dist(SplineLocation, PlayerPawn->GetActorLocation());
-	//UE_LOG(LogTemp, Warning, TEXT("Distance is %f:"),Distance);
+	UE_LOG(LogTemp, Warning, TEXT("Distance is %f:"),Distance);
 	if (Distance > DISTANCE_THRESHOLD)
 	{
 		// Initiate a game over sequence
 		AEngineBrakeGameMode* GameMode = Cast<AEngineBrakeGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-		static FTimerHandle GameOverDelayer;
-		GetWorld()->GetTimerManager().SetTimer(GameOverDelayer, GameMode, &AEngineBrakeGameMode::GameOver, 2.0f);
+		//static FTimerHandle GameOverDelayer;
+		GameMode->GameOver();
+		//GetWorld()->GetTimerManager().SetTimer(GameOverDelayer, GameMode, &AEngineBrakeGameMode::GameOver, 2.0f);
 	}
 }
 

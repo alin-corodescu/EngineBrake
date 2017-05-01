@@ -186,15 +186,20 @@ void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputCom
 void AEngineBrakePawn::MoveForward(float Val)
 {
 	//! Only apply throttle if the engine is running, otherwise don't
+	if (Val < 0)
+	{
+		if (GetVehicleMovementComponent()->GetForwardSpeed() > 0)
+			GetVehicleMovementComponent()->SetThrottleInput(Val);
+	}
 	if (bRunningEngine)
 	{
-		bHasThrottleInput = true;
+		//bHasThrottleInput = true;
 		if (bInReverseGear)
 			Val = -Val;
 		GetVehicleMovementComponent()->SetThrottleInput(Val);
 		return;
 	}
-	bHasThrottleInput = false;
+	//bHasThrottleInput = false;
 }
 
 void AEngineBrakePawn::MoveRight(float Val)

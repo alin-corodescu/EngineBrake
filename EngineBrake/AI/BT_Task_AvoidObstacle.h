@@ -15,6 +15,8 @@ class ENGINEBRAKE_API UBT_Task_AvoidObstacle : public UBTTask_BlackboardBase
 	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
-	float CalculateSteering(class AActor* Obstacle,class AActor* ControlledVehicle);
+	float CalculateSteering(class AActor* Obstacle, class AActor* ControlledVehicle); //!< Calculates the steering required to avoid the obstacle
+
+	float CalculateThrottle(class AActor* Obstacle, class AVehicleAIPawn* ControlledVehicle); //!< Calculates the throttle to be aplied in order to avoid the obstacle
 	
 };
