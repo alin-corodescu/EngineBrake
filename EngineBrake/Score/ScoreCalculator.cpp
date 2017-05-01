@@ -8,7 +8,7 @@
 #define HIGH_RPM 4000.0f
 #define UPSHIFT_SCORE 100.0f
 #define TICK_SCORE_SECOND 10.0f
-ScoreCalculator* ScoreCalculator::instance = NULL;
+ScoreCalculator* ScoreCalculator::Instance = NULL;
 
 ScoreCalculator::ScoreCalculator()
 {

@@ -41,11 +41,12 @@ void UFuelSystemComponent::TickComponent( float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 
+	// If the vehicle is consuming fuel
 	if (Parent->bRunningEngine && FuelLevel > 0 && Parent->GetVehicleMovementComponent()->GetCurrentGear())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Component Tick is actually being called"));
-
 		UWheeledVehicleMovementComponent* MovementComponent = Parent->GetVehicleMovement();
+
+		// Compute the amount consumed
 		float InstantConsumption = ConsumptionCoefficient * MovementComponent->GetEngineRotationSpeed();
 
 		FuelLevel -= InstantConsumption;
@@ -53,7 +54,6 @@ void UFuelSystemComponent::TickComponent( float DeltaTime, ELevelTick TickType, 
 		if (FuelLevel < 0.0f)
 			Parent->OutOfFuel();
 	}
-	// ...
 }
 
 float UFuelSystemComponent::GetFuelPrecentage()

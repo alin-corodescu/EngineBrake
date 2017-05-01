@@ -3,7 +3,7 @@
 #pragma once
 #include "RoadData.generated.h"
 /**
- * 
+ * Deprecated struct, not used anymore
  */
 USTRUCT(BlueprintType)
 struct FRoadData

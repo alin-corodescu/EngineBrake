@@ -17,22 +17,21 @@ void AVehicleAIPawn::OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, U
 {
 	if (OtherActor->IsA(this->StaticClass()) || OtherActor->IsA(AEngineBrakePawn::StaticClass()))
 	{
+		// Play effects
 		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
 		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
+
+		// Hide the mesh
 		GetMesh()->SetVisibility(false);
 		AVehicleAIPawn* OtherVehicle = Cast<AVehicleAIPawn>(OtherActor);
+		// Hide the other vehicle if it is another AI Pawn
 		if (OtherVehicle)
-		{
 			OtherVehicle->GetMesh()->SetVisibility(false);
-		}
-		//this->Destroy();
-		//OtherActor->Destroy();
 	}
 	if (OtherActor->IsA(AEngineBrakePawn::StaticClass()))
 	{
 		// Hack to solve the collision problems
 		AEngineBrakePawn* OtherVehicle = Cast<AEngineBrakePawn>(OtherActor);
-		// This will produce a endless loop
 		OtherVehicle->OnCollision(NULL, this, NULL, FVector::ZeroVector, FHitResult());
 	}
 }
@@ -46,7 +45,9 @@ AVehicleAIPawn::AVehicleAIPawn()
 	static ConstructorHelpers::FClassFinder<UObject> AnimBPClass(TEXT("/Game/Vehicle/Sedan/Sedan_AnimBP"));
 	GetMesh()->SetAnimInstanceClass(AnimBPClass.Class);
 
+	// Set up collision callback
 	GetMesh()->OnComponentHit.AddDynamic(this, &AVehicleAIPawn::OnHit);
+
 	// Simulation
 	UWheeledVehicleMovementComponent4W* Vehicle4W = CastChecked<UWheeledVehicleMovementComponent4W>(GetVehicleMovement());
 
@@ -77,13 +78,9 @@ AVehicleAIPawn::AVehicleAIPawn()
 
 
 
+	// Set up AI
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-
-	// We need to set the AI Controller class
 	AIControllerClass = AVehicleAIController::StaticClass();
-
-
-	//Controller = CreateAbstractDefaultSubobject<AVehicleAIController>(TEXT("AIController"));
 
 
 	// Instantiate the behaviour tree here
@@ -99,6 +96,7 @@ AVehicleAIPawn::AVehicleAIPawn()
 	EngineSoundComponent->SetSound(SoundCue.Object);
 	EngineSoundComponent->SetupAttachment(GetMesh());
 
+	// Set up the destroying effects
 	static ConstructorHelpers::FObjectFinder<UParticleSystem> ExplosionFinder(TEXT("ParticleSystem'/Game/StarterContent/Particles/P_Explosion.P_Explosion'"));
 	if (ExplosionFinder.Succeeded())
 	{
@@ -118,28 +116,16 @@ void AVehicleAIPawn::BeginPlay()
 	Super::BeginPlay();
 
 	if (PawnSensingComp)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Pawn Sensing comp is set properly"));
 		// Set up the callback when we see a vehicle
 		PawnSensingComp->OnSeePawn.AddDynamic(this, &AVehicleAIPawn::OnDetectVehicle);
-	}
-	// Set up the AI controller
-	//Controller->Possess(this);
 }
 
 void AVehicleAIPawn::OnDetectVehicle(APawn * Vehicle)
 {
-
 	// Announce the controller that we are seeing things
 	AVehicleAIController* Controller = Cast<AVehicleAIController>(GetController());
 	if (Controller)
-	{
 		Controller->SetObstacle(Vehicle);
-	}
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Detected a vehicle"));
-	}
 }
 
 AEndlessTrackGenerator * AVehicleAIPawn::GetFollowedPath()
@@ -156,7 +142,7 @@ void AVehicleAIPawn::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
-	// Add pawn sensing range to be higher
+	// Adjust Sight radius based on speed
 	PawnSensingComp->SightRadius = GetVehicleMovementComponent()->GetForwardSpeed() * 5;
 	if (PawnSensingComp->SightRadius < 2000) PawnSensingComp->SightRadius = 2000;
 

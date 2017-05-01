@@ -15,17 +15,24 @@ AEndlessTrackGenerator::AEndlessTrackGenerator()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Mark the spline component as root
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	RootComponent = SplineComponent;
 
+	// Load the meshes for the road objects
 	ConstructorHelpers::FObjectFinder<UStaticMesh> RoadMeshFinder(TEXT("StaticMesh'/Game/Props/RoadMesh.RoadMesh'"));
 	RoadMesh = RoadMeshFinder.Object;
+
 	ConstructorHelpers::FObjectFinder<UStaticMesh> RightGuardRailMeshFinder(TEXT("StaticMesh'/Game/Props/R_GuardRail.R_GuardRail'"));
 	RightGuardRailMesh = RightGuardRailMeshFinder.Object;
+
 	ConstructorHelpers::FObjectFinder<UStaticMesh> LeftGuardRailMeshFinder(TEXT("StaticMesh'/Game/Props/L_GuardRail.L_GuardRail'"));
 	LeftGuardRailMesh = LeftGuardRailMeshFinder.Object;
 
+	// Create a new SplineMeshPool
 	SplineMeshesPool = new SplineMeshesComponentsPool();
+	
+	// Create the required components
 	SplineMeshesPool->CreateComponents(this, NumberOfSplinePoints - 1, RoadMesh, RightGuardRailMesh, LeftGuardRailMesh);
 }
 
@@ -34,7 +41,7 @@ void AEndlessTrackGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SplineComponent->SetDrawDebug(true);
+	// Create a straight spline as starting Track
 	TArray<FVector> SplinePointsLocation;
 	SplinePointsLocation.SetNum(NumberOfSplinePoints);
 	SplinePointsLocation[0] = FVector(0, 0, 0);
@@ -47,6 +54,7 @@ void AEndlessTrackGenerator::BeginPlay()
 	// Spawn the inital spline points
 	SplineComponent->SetSplineLocalPoints(SplinePointsLocation);
 	
+	// Assign the SplineMeshComponents to the Spline
 	BuildTrack();
 }
 
@@ -55,10 +63,9 @@ void AEndlessTrackGenerator::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 	
+	// Check the track needs to be rebuilt
 	if (GetWorld()->TimeSince(LastRebuild) > RebuildingInterval)
-	{
 		RebuildTrack();
-	}
 }
 
 USplineComponent * AEndlessTrackGenerator::GetSplineComponent()
@@ -68,9 +75,13 @@ USplineComponent * AEndlessTrackGenerator::GetSplineComponent()
 
 void AEndlessTrackGenerator::BuildTrack()
 {	
+	// Initialize the variable
 	LastRebuild = GetWorld()->TimeSeconds;
+
 	// Store number of spline points
 	int SplinePointsNumber = SplineComponent->GetNumberOfSplinePoints();
+
+	// Prepare the locations and tangents for the the SplineMeshComponents
 	TArray<FVector> Locations, Tangents;
 	Locations.SetNum(NumberOfSplinePoints);
 	Tangents.SetNum(NumberOfSplinePoints);
@@ -78,54 +89,48 @@ void AEndlessTrackGenerator::BuildTrack()
 		// Construct the TArray with initial positions and tangents
 		SplineComponent->GetLocalLocationAndTangentAtSplinePoint(i, Locations[i], Tangents[i]);
 
+	// Pass the parameters to the SplineMeshPool, spawning the SplineMeshComponents
 	SplineMeshesPool->SetInitialPositions(Locations, Tangents);
 }
 
 void AEndlessTrackGenerator::RebuildTrack()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Rebuild track called"));
 	int NumberOfSplinePoints = SplineComponent->GetNumberOfSplinePoints();
+
 	TArray<FVector> SplinePointsLocation;
 	SplinePointsLocation.SetNum(NumberOfSplinePoints);
 
 	for (int i = 0; i < NumberOfSplinePoints - 1; i++)
 		SplinePointsLocation[i] = SplineComponent->GetLocationAtSplinePoint(i + 1, ESplineCoordinateSpace::Local);
 
-	// Here handle the logic of generating the next point
 
+	// Generate a new point
 	SplinePointsLocation[NumberOfSplinePoints - 1] = GenerateNextPoint();
 
+	// Update the spline
 	SplineComponent->SetSplineLocalPoints(SplinePointsLocation);
+
+	// Update the SplineMeshComponents with the new EndLocation and EndTangent
 	FVector Location, Tangent;
 	SplineComponent->GetLocalLocationAndTangentAtSplinePoint(NumberOfSplinePoints - 1, Location, Tangent);
-
 	SplineMeshesPool->UpdateEnds(Location, Tangent);
 
+	// Store the time of the last track rebuilding
 	LastRebuild = GetWorld()->TimeSeconds;
 }
 
 FVector AEndlessTrackGenerator::GenerateNextPoint()
 {
-	static int tester = 0;
-	tester++;
-	enum Directions 
-	{
-		Straight, Left, Right, Up, Down
-	};
-	// Would be more ellegant with a map, but in a hurry
-	float UpDownAngle[5] = { 0.0f, 0.0f, 0.0f, UpDownAngleLimit, -UpDownAngleLimit };
-	float LeftRightAngle[5] = { 0.0f, LeftRightAngleLimit, -LeftRightAngleLimit, 0.0f, 0.0f };
 	int Index = SplineComponent->GetNumberOfSplinePoints() - 1;
+
 	FVector UpVector, RightVector, ForwardVector;
 	UpVector = SplineComponent->GetUpVectorAtSplinePoint(Index, ESplineCoordinateSpace::Local);
 	RightVector = SplineComponent->GetRightVectorAtSplinePoint(Index, ESplineCoordinateSpace::Local);
 	// Forward vector is the cross product of up and right vectors
 	ForwardVector = -FVector::CrossProduct(UpVector, RightVector);
 
-
 	// Scale up the forward vector
 	ForwardVector *= DistanceBetweenPoints;
-
 
 	float AngleOnZ = 0, AngleOnX = 0;
 
@@ -137,7 +142,6 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 		if (DownTurns > -2) 
 		{
 			// Go up
-			//UE_LOG(LogTemp, Warning, TEXT("UP"));
 			AngleOnZ = UpDownAngleLimit;
 			DownTurns--;
 		}
@@ -146,7 +150,6 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 	{
 		if (DownTurns < 2)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("DOWN"));
 			AngleOnZ = -UpDownAngleLimit;
 			DownTurns++;
 		}
@@ -161,7 +164,6 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 		if (LeftTurns > -2)
 		{
 			// Go Right
-			//UE_LOG(LogTemp, Warning, TEXT("Right"));
 			AngleOnX = LeftRightAngleLimit;
 			LeftTurns--;
 		}
@@ -171,7 +173,6 @@ FVector AEndlessTrackGenerator::GenerateNextPoint()
 		if (LeftTurns < 2)
 		{
 			// Go left
-			//UE_LOG(LogTemp, Warning, TEXT("Left"));
 			AngleOnX = -LeftRightAngleLimit;
 			LeftTurns++;
 		}

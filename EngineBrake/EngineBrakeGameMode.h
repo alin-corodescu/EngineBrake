@@ -3,6 +3,9 @@
 #include "GameFramework/GameMode.h"
 #include "EngineBrakeGameMode.generated.h"
 
+/**
+* Class representing the Game mode, acting as base class for it's Blueprint counterpart BP_EngineBrakeGameMode
+*/
 UCLASS()
 class AEngineBrakeGameMode : public AGameMode
 {
@@ -14,6 +17,8 @@ public:
 	
 	virtual void BeginPlay() override;
 
+	//! Function called to end the game
+	/*! Called when the player pawn gets destroyed or falls off track*/
 	void GameOver();
 
 	//! Reference UMG Asset in the Editor

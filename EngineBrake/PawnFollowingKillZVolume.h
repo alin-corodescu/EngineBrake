@@ -6,12 +6,13 @@
 #include "PawnFollowingKillZVolume.generated.h"
 
 /**
- * 
+ * KillZVolume which follows a pawn (places itself below the pawn)
  */
 UCLASS()
 class ENGINEBRAKE_API APawnFollowingKillZVolume : public AKillZVolume
 {
 	GENERATED_BODY()
+	//! Pawn to be followed
 	APawn* PawnToFollow;
 public:
 	APawnFollowingKillZVolume();

@@ -6,7 +6,7 @@
 #include "VehicleAIController.generated.h"
 
 /**
- * 
+ * Controller class for the VehicleAIPawn
  */
 UCLASS()
 class ENGINEBRAKE_API AVehicleAIController : public AAIController
@@ -20,15 +20,15 @@ private:
 
 	virtual void UnPossess() override;
 	
-	UBehaviorTreeComponent* BehaviorComp;
+	UBehaviorTreeComponent* BehaviorComp; //!< Reference to the Behavior tree component used by this Controller
 
-	UBlackboardComponent* BlackboardComp;
+	UBlackboardComponent* BlackboardComp; //!< Reference to the Blackboard component used in conjuction with the Behavior tree
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	FName ObstacleKeyName;
+	FName ObstacleKeyName; //!< Blackboard key name of the Obstacle object
 
 public:
-	void SetObstacle(APawn* obstacle);
+	void SetObstacle(APawn* obstacle); //!< Updates the blackboard with a new obstacle
 
-	APawn* GetObstacle();
+	APawn* GetObstacle(); //!< Returns the reference to the obstacle stored on the blackboard. Clears the value from the blackboard.
 };

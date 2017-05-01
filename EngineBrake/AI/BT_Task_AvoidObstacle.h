@@ -6,7 +6,7 @@
 #include "BT_Task_AvoidObstacle.generated.h"
 
 /**
- * 
+ * Class used to handle the AI logic of avoiding an obstacle (a Pawn)
  */
 UCLASS()
 class ENGINEBRAKE_API UBT_Task_AvoidObstacle : public UBTTask_BlackboardBase

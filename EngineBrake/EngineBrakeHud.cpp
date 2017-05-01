@@ -24,6 +24,7 @@ AEngineBrakeHud::AEngineBrakeHud()
 	static ConstructorHelpers::FObjectFinder<UFont> Font(TEXT("/Engine/EngineFonts/RobotoDistanceField"));
 	HUDFont = Font.Object;
 
+	// Cache the assets to be used by the HUD
 	UTexture2D* EngineOnImageAsset;
 	static ConstructorHelpers::FObjectFinder<UTexture2D> EngineOnTextureOb(TEXT("Texture2D'/Game/Imagesd/Engine_on.Engine_on'"));
 	EngineOnImageAsset = EngineOnTextureOb.Object;
@@ -64,36 +65,6 @@ void AEngineBrakeHud::DrawHUD()
 	DrawSpeed();
 
 	DrawRPM();
-
-	// Calculate ratio from 1080p
-	const float HUDXRatio = Canvas->SizeX / 1920.f;
-	const float HUDYRatio = Canvas->SizeY / 1080.f;
-
-	/*AEngineBrakePawn* Vehicle = Cast<AEngineBrakePawn>(GetOwningPawn());
-
-	FVector2D ScaleVec(HUDYRatio * 1.4f, HUDYRatio * 1.4f);
-
-		// Speed
-			FCanvasTextItem SpeedTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->SpeedDisplayString, HUDFont, FLinearColor::White);
-			SpeedTextItem.Scale = ScaleVec;
-			Canvas->DrawItem(SpeedTextItem);
-
-			// Gear
-			FCanvasTextItem GearTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 500.f), Vehicle->GearDisplayString, HUDFont, Vehicle->bInReverseGear == false ? Vehicle->GearDisplayColor : Vehicle->GearDisplayReverseColor);
-			GearTextItem.Scale = ScaleVec;
-			Canvas->DrawItem(GearTextItem);
-
-			FCanvasTextItem RPMTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 550.f), Vehicle->RPMDisplayString, HUDFont, FLinearColor::White);
-			RPMTextItem.Scale = ScaleVec;
-			Canvas->DrawItem(RPMTextItem);
-
-			/*FCanvasTextItem FuelTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 600.f), Vehicle->FuelPrecentageDisplayString, HUDFont, FLinearColor::White);
-			FuelTextItem.Scale = ScaleVec;
-			Canvas->DrawItem(FuelTextItem);*/
-
-			/*FCanvasTextItem ScoreTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 650.f), Vehicle->ScoreDisplayString, HUDFont, FLinearColor::White);
-			ScoreTextItem.Scale = ScaleVec;
-			Canvas->DrawItem(ScoreTextItem);*/
 }
 
 
@@ -107,20 +78,13 @@ void AEngineBrakeHud::DrawScore()
 	FVector2D ScreenDimensions = FVector2D(Canvas->SizeX, Canvas->SizeY);
 
 	FText ScoreString = FText::Format(FText::FromString("Score : {0}"), FText::AsNumber(Vehicle->PlayerState->Score));
+
+	// Offset the text according to it's length
 	int size = ScoreString.ToString().Len();
 	FVector2D TextCentrePos = FVector2D((Canvas->SizeX - 12 * size), 15);
-	FCanvasTextItem TextItem(TextCentrePos, ScoreString,
-		HUDFont, FLinearColor::Blue);
+	FCanvasTextItem TextItem(TextCentrePos, ScoreString, HUDFont, FLinearColor::Blue);
 	Canvas->DrawItem(TextItem);
 
-	/*// Calculate ratio from 1080p
-	const float HUDXRatio = Canvas->SizeX / 1920.f;
-	const float HUDYRatio = Canvas->SizeY / 1080.f;
-	FVector2D ScaleVec(HUDYRatio * 1.4f, HUDYRatio * 1.4f);
-
-	FCanvasTextItem ScoreTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 650.f), Vehicle->ScoreDisplayString, HUDFont, FLinearColor::White);
-	ScoreTextItem.Scale = ScaleVec;
-	Canvas->DrawItem(ScoreTextItem);*/
 }
 
 void AEngineBrakeHud::DrawPopupMessage()
@@ -153,9 +117,6 @@ void AEngineBrakeHud::DrawEngineIndicator()
 void AEngineBrakeHud::DrawGear()
 {
 	AEngineBrakePawn* Vehicle = Cast<AEngineBrakePawn>(GetOwningPawn());
-	const float HUDXRatio = Canvas->SizeX / 1920.f;
-	const float HUDYRatio = Canvas->SizeY / 1080.f;
-	//FVector2D ScaleVec(HUDYRatio * 1.4f, HUDYRatio * 1.4f);
 
 	FCanvasTextItem GearTextItem(FVector2D(Canvas->SizeX - 270, Canvas->SizeY - 330), Vehicle->GearDisplayString, HUDFont, FLinearColor::White);
 	GearTextItem.Scale = FVector2D(2,2);
@@ -165,9 +126,6 @@ void AEngineBrakeHud::DrawGear()
 void AEngineBrakeHud::DrawSpeed()
 {
 	AEngineBrakePawn* Vehicle = Cast<AEngineBrakePawn>(GetOwningPawn());
-	//const float HUDXRatio = Canvas->SizeX / 1920.f;
-	//const float HUDYRatio = Canvas->SizeY / 1080.f;
-	//FVector2D ScaleVec(HUDYRatio * 1.4f, HUDYRatio * 1.4f);
 
 	FCanvasTextItem SpeedTextItem(FVector2D(Canvas->SizeX - 200, Canvas->SizeY - 360), Vehicle->SpeedDisplayString, HUDFont, FLinearColor::White);
 	SpeedTextItem.Scale = FVector2D(2,2);
@@ -186,9 +144,11 @@ void AEngineBrakeHud::DrawRPM()
 	float RPM = Vehicle->GetVehicleMovementComponent()->GetEngineRotationSpeed();
 	float MaxRPM = Vehicle->GetVehicleMovementComponent()->GetEngineMaxRotationSpeed();
 
+	// Rotate the indicator proportionately by RPM
 	float IndicatorRotation = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, MaxRPM), FVector2D(-150.0f, 75.0f), RPM);
+	
+	// There might be a more elegant solution
 	FVector2D NewEnd = Center - (Center - End).GetRotated(IndicatorRotation);
 
 	Canvas->K2_DrawLine(Center, NewEnd , 2.0f );
-
 }

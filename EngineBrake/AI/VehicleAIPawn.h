@@ -6,7 +6,7 @@
 #include "VehicleAIPawn.generated.h"
 
 /**
- * 
+ * Class for AI controlled vehicles in the game
  */
 UCLASS()
 class ENGINEBRAKE_API AVehicleAIPawn : public AWheeledVehicle
@@ -17,18 +17,22 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	class UPawnSensingComponent* PawnSensingComp;
 
+	//! Reference to the Actor generating the Track, required for AI calculations of steering and throttle
 	UPROPERTY(EditAnywhere)
 	class AEndlessTrackGenerator* RoadToFollow;
 
-	/** Audio component for the engine sound */
+	//! Audio component for the engine sound
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UAudioComponent* EngineSoundComponent;
 
+	//! Function to be called when colliding with another object
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit);
 
+	//! Sound to play when colliding with another vehicle
 	USoundBase* ExplosionSound = NULL;
 
+	//! Particle System to be used when colliding with another vehicle
 	UParticleSystem* Explosion = NULL;
 
 public:
@@ -48,12 +52,13 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	class UBehaviorTree* BehaviorTree;
 
-	//! Getter for the SplineToFollow
+	//! Getter for the Actor generating the track
 	AEndlessTrackGenerator* GetFollowedPath();
 
-	//! Setter for the spline path to folow
+	//! Setter for the Actor generating the track
 	void SetPathToFollow(AEndlessTrackGenerator* RoadGenerator);
 
+	//! How far ahead (in time) to look ahead when predicting the future location for steering and throttle input.
 	UPROPERTY(EditAnywhere)
 	float LookAheadMiliSeconds = 1000;
 };

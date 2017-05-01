@@ -6,19 +6,22 @@
 #include "RoadData.h"
 #include "TrackGeneratorActor.generated.h"
 
+/**
+* Class no longer used for the game, represents a "manual" track generator
+*/
 UCLASS()
 class ENGINEBRAKE_API ATrackGeneratorActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+	//! Sets default values for this actor's properties
 	ATrackGeneratorActor();
 
-	// Called when the game starts or when spawned
+	//! Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	// Called every frame
+	//! Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
 	virtual void OnConstruction(const FTransform& Transform) override;

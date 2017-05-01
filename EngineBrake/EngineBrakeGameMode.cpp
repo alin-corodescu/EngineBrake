@@ -15,8 +15,6 @@ AEngineBrakeGameMode::AEngineBrakeGameMode()
 	DefaultPawnClass = AEngineBrakePawn::StaticClass();
 	PlayerStateClass = APlayerState::StaticClass();
 	HUDClass = AEngineBrakeHud::StaticClass();
-
-
 }
 
 void AEngineBrakeGameMode::BeginPlay()
@@ -24,9 +22,7 @@ void AEngineBrakeGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	if (GameOverWidgetClass)
-	{
 		GameOverWidget = CreateWidget<UUserWidget>(GetWorld(), GameOverWidgetClass);
-	}
 }
 
 void AEngineBrakeGameMode::GameOver()

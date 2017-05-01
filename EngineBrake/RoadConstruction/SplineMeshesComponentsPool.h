@@ -3,7 +3,7 @@
 #pragma once
 
 /**
- * 
+ * Pool of cached SplineMeshComponents, used to improve performance when track elements need to be rebuilt (as the game progresses)
  */
 class USplineMeshComponent;
 class UStaticMesh;
@@ -22,11 +22,13 @@ private:
 	//! Vector caching created SplineMeshComponents of the Right Guard Rail Mesh
 	TArray<USplineMeshComponent*> RightGuardRailMeshes;
 
-	//! Index of the first component (ordered by their position in the world
+	//! Index of the first component (ordered by their position in the world)
 	int FirstIndex = 0;
 
+	//! Index of the last component (ordered by their position in the world)
 	int LastIndex;
 
+	//! Function used to pre-cache SplineMeshComponents by creating them hidden
 	USplineMeshComponent* CreateHiddenSplineMeshComponent(AActor* Creator, UStaticMesh* Mesh);
 public:
 	//! Function used to initialize
@@ -34,12 +36,16 @@ public:
 	
 	//! Sets the initial positions of the SplineMeshes
 	/**
-	* Spawns the components at the desired locations, should be used only when initializing the spline
+	* Spawns the components at the desired locations, should be used only when initializing the Track
+	* Sets the visibility of the SplineMeshes to true. The size of the two arrays passed as parameters needs
+	* to be the number of Spline Mesh components + 1
 	*/
 	void SetInitialPositions(const TArray<FVector>& Locations, const TArray<FVector>& Tangents);
 
 	//! Updates both ends of the Road, moving the first SplineMesh to the end
 	void UpdateEnds(const FVector& Location, const FVector& Tangent);
+
+
 	SplineMeshesComponentsPool();
 	~SplineMeshesComponentsPool();
 };

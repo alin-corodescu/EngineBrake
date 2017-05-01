@@ -40,10 +40,11 @@ float UBT_Task_AvoidObstacle::CalculateSteering(AActor * Obstacle, AActor * Cont
 	DirectionToObstacle.Normalize();
 
 	FVector SteeringVector = ForwardVector - DirectionToObstacle;
-
+	
+	// Compute the angle between the controlled vehicle and the other actor
 	FRotator VehicleRotator = SteeringVector.Rotation();
 
-	//UE_LOG(LogTemp, Warning, TEXT("Vehicle Rotator Yaw is %f:"), VehicleRotator.Yaw);
+	// Steer in order to avoid the actor
 	if (VehicleRotator.Yaw < 0)
 		return 1;
 	return -1;

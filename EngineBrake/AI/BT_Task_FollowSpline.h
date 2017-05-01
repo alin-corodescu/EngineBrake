@@ -6,7 +6,8 @@
 #include "BT_Task_FollowSpline.generated.h"
 
 /**
- * 
+ * Behaviour tree task used to adjust steering and throttle for a Vehicle Pawn to follow the Spline
+ * it was assigned
  */
 UCLASS()
 class ENGINEBRAKE_API UBT_Task_FollowSpline : public UBTTask_BlackboardBase
@@ -15,7 +16,7 @@ class ENGINEBRAKE_API UBT_Task_FollowSpline : public UBTTask_BlackboardBase
 	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	
-	float CalculateSteering(class AVehicleAIPawn* ControlledVehicle);
+	float CalculateSteering(class AVehicleAIPawn* ControlledVehicle); //!< Outputs the steering required to keep following the Spline
 
-	float CalculateThrottle(class AVehicleAIPawn* ControlledVehicle);
+	float CalculateThrottle(class AVehicleAIPawn* ControlledVehicle); //!< Outputs the throttle required to keep following the Spline without over/under turning
 };

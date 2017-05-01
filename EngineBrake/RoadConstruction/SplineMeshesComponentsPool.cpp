@@ -7,6 +7,7 @@
 
 USplineMeshComponent * SplineMeshesComponentsPool::CreateHiddenSplineMeshComponent(AActor* Creator, UStaticMesh * Mesh)
 {
+	// Creates a new Hidden spline mesh component
 	USplineMeshComponent* SplineMesh = ConstructObject<USplineMeshComponent>(USplineMeshComponent::StaticClass(), Creator);
 	SplineMesh->SetMobility(EComponentMobility::Movable);
 	SplineMesh->SetCollisionProfileName(FName("BlockAll"));
@@ -14,17 +15,20 @@ USplineMeshComponent * SplineMeshesComponentsPool::CreateHiddenSplineMeshCompone
 	SplineMesh->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 	SplineMesh->SetStaticMesh(Mesh);
 	SplineMesh->SetHiddenInGame(true);
+
 	return SplineMesh;
 }
 
 void SplineMeshesComponentsPool::CreateComponents(AActor* Creator,int Number, UStaticMesh * RoadMesh, UStaticMesh * LGuard, UStaticMesh * RGuard)
 {
 	NumberOfComponents = Number;
-	UE_LOG(LogTemp, Warning, TEXT("CreateComponents called for %d"),NumberOfComponents);
+	
+	// Resize the arrays
 	RoadMeshes.SetNum(Number);
 	LeftGuardRailMeshes.SetNum(Number);
 	RightGuardRailMeshes.SetNum(Number);
 	
+	// Fill the arrays
 	for (int i = 0; i < Number; i++)
 	{
 		RoadMeshes[i] = CreateHiddenSplineMeshComponent(Creator, RoadMesh);
@@ -36,6 +40,7 @@ void SplineMeshesComponentsPool::CreateComponents(AActor* Creator,int Number, US
 void SplineMeshesComponentsPool::SetInitialPositions(const TArray<FVector>& Locations, const TArray<FVector>& Tangents)
 {
 	int Current;
+	// Set up the locations and un-hide the SplineMeshes components
 	for (Current = 0; Current < NumberOfComponents; Current++)
 	{
 		int Next = Current + 1;
@@ -51,6 +56,7 @@ void SplineMeshesComponentsPool::SetInitialPositions(const TArray<FVector>& Loca
 			Locations[Next], Tangents[Next], true);
 		RightGuardRailMeshes[Current]->SetHiddenInGame(false);
 	}
+	// Store the first and last index
 	FirstIndex = 0;
 	LastIndex = NumberOfComponents - 1;
 }
@@ -60,13 +66,17 @@ void SplineMeshesComponentsPool::UpdateEnds(const FVector & Location, const FVec
 	FVector StartLocation, EndLocation, StartTangent, EndTangent;
 	EndLocation = Location;
 	EndTangent = Tangent;
+	
+	// SplineMeshComponents starts where the last one ends
 	StartLocation = RoadMeshes[LastIndex]->GetEndPosition();
 	StartTangent = RoadMeshes[LastIndex]->GetEndTangent();
 
+	// Set up the parameters
 	RoadMeshes[FirstIndex]->SetStartAndEnd(StartLocation, StartTangent, EndLocation, EndTangent, true);
 	LeftGuardRailMeshes[FirstIndex]->SetStartAndEnd(StartLocation, StartTangent, EndLocation, EndTangent, true);
 	RightGuardRailMeshes[FirstIndex]->SetStartAndEnd(StartLocation, StartTangent, EndLocation, EndTangent, true);
 
+	// Update the indexes
 	LastIndex = FirstIndex;
 
 	FirstIndex++;

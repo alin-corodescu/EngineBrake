@@ -15,25 +15,15 @@
 
 EBTNodeResult::Type UBT_Task_FollowSpline::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-
-	//UE_LOG(LogTemp, Warning, TEXT("Follow spline called"));
-
 	AVehicleAIController* Controller = Cast<AVehicleAIController>(OwnerComp.GetAIOwner());
 	if (!Controller)
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("Controller failed"));
 		return EBTNodeResult::Failed;
-	}
 
 	AVehicleAIPawn* ControlledVehicle = Cast<AVehicleAIPawn>(Controller->GetPawn());
 	if (!ControlledVehicle)
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("Vehicle failed"));
 		return EBTNodeResult::Failed;
-	}
 
-	
-	// Placeholders for actual logic of spline following
+
 	ControlledVehicle->GetVehicleMovementComponent()->SetThrottleInput(CalculateThrottle(ControlledVehicle));
 
 	ControlledVehicle->GetVehicleMovementComponent()->SetSteeringInput(CalculateSteering(ControlledVehicle));
@@ -44,30 +34,33 @@ EBTNodeResult::Type UBT_Task_FollowSpline::ExecuteTask(UBehaviorTreeComponent& O
 float UBT_Task_FollowSpline::CalculateSteering(AVehicleAIPawn * ControlledVehicle)
 {
 	USplineComponent* SplineToFollow = ControlledVehicle->GetFollowedPath()->GetSplineComponent();
+
+	// Predict a location
 	FVector PredictedLocation = ControlledVehicle->GetActorLocation();
 	PredictedLocation += ControlledVehicle->GetActorForwardVector() * LOOK_AHEAD_STEERING;
 	
+	// Find the closest location on the spline to the predicted one
 	FVector SplineClosestLocation = SplineToFollow->FindLocationClosestToWorldLocation(PredictedLocation, ESplineCoordinateSpace::World);
 
+	// Compute the Rotation needed to face the point on the spline
 	FRotator Rotation = (SplineClosestLocation - ControlledVehicle->GetActorLocation()).Rotation();
 
 	Rotation.Normalize();
 	FRotator ActorRotation = ControlledVehicle->GetActorRotation();
 	ActorRotation.Normalize();
 
+	//Compute the difference we need to apply
 	FRotator DeltaRotation = (Rotation - ActorRotation);
 
 	// Apply handbrake if the angle is higher than 45 degrees
 	//ControlledVehicle->GetVehicleMovementComponent()->SetHandbrakeInput(DeltaRotation.Yaw > 45 || DeltaRotation.Yaw < -45);
 
+	// Map the angle range to steering input range
 	return FMath::GetMappedRangeValueClamped(FVector2D(-90, 90), FVector2D(-1, 1), DeltaRotation.Yaw);
 }
 
 float UBT_Task_FollowSpline::CalculateThrottle(AVehicleAIPawn * ControlledVehicle)
 {
-
-	//return 0.5f;
-	//UE_LOG(LogTemp, Warning, TEXT("Current Speed : %f"), ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed());
 	// Apply the logic only if we are moving at a considerable speed
 	if (ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed() > 300)
 	{
@@ -78,14 +71,20 @@ float UBT_Task_FollowSpline::CalculateThrottle(AVehicleAIPawn * ControlledVehicl
 			ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed() *
 			(ControlledVehicle->LookAheadMiliSeconds / 1000.0f);
 
+		// Find the closest point on the spline (in relation to the predicted location)
 		FVector SplineClosestLocation = SplineToFollow->FindLocationClosestToWorldLocation(PredictedLocation, ESplineCoordinateSpace::World);
 
+		// Compute the distance between the 2 points
 		float Distance = FVector::Dist(SplineClosestLocation, PredictedLocation);
 		Distance = FMath::Abs<float>(Distance);
 
+		// If we are about to go highly off track
 		if (Distance > DISTANCE_THRESHOLD_BRAKING)
 		{	
 			return -1;
+
+			// This here is a dropped idea, could be interesting though to work more on it
+
 			/*UE_LOG(LogTemp, Warning, TEXT("Distance is %f"), Distance);
 			float DistMax = ControlledVehicle->GetVehicleMovementComponent()->GetForwardSpeed() * (ControlledVehicle->LookAheadMiliSeconds / 1000.0f);
 			UE_LOG(LogTemp, Warning, TEXT("Max Distance is %f"), DistMax);

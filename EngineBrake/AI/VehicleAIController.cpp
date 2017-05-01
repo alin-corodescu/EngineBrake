@@ -25,27 +25,23 @@ void AVehicleAIController::Possess(APawn * InPawn)
 
 	AVehicleAIPawn* Vehicle = Cast<AVehicleAIPawn>(InPawn);
 	if (Vehicle)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Possession happened"));
+		// Initialize the Blackboard component
 		BlackboardComp->InitializeBlackboard(*Vehicle->BehaviorTree->BlackboardAsset);
-	}
 
+	// Start running the BT
 	BehaviorComp->StartTree(*Vehicle->BehaviorTree);
 }
 
 void AVehicleAIController::UnPossess()
 {
 	Super::UnPossess();
-
 	BehaviorComp->StopTree();
 }
 
 void AVehicleAIController::SetObstacle(APawn * Obstacle)
 {
 	if (BlackboardComp)
-	{
 		BlackboardComp->SetValueAsObject(ObstacleKeyName, Obstacle);
-	}
 }
 
 APawn* AVehicleAIController::GetObstacle()

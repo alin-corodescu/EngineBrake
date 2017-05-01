@@ -4,7 +4,9 @@
 
 #include "Components/ActorComponent.h"
 #include "FuelSystemComponent.generated.h"
-
+/**
+* Class handling the logic of fuel consumption for player controlled vehicles
+*/
 class AEngineBrakePawn;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ENGINEBRAKE_API UFuelSystemComponent : public UActorComponent
@@ -12,20 +14,20 @@ class ENGINEBRAKE_API UFuelSystemComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
+	//! Sets default values for this component's properties
 	UFuelSystemComponent();
 
 	//! Called after the constructor to set the fuel consumption coefficient and provide a reference to the Parent of this ActorComponent
-	/**
+	/*!
 	*	The fuel consumption is a linear function of the engine RPM, where the
 	* RPM value is multiplied by the coefficient and the time elpased since the last Tick()
 	*/
 	void SetupConsumptionParameters(AEngineBrakePawn* MovementComponent,float Coefficient);
 
-	// Called when the game starts
+	//! Called when the game starts
 	virtual void BeginPlay() override;
 	
-	// Called every frame
+	//! Called every frame
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 	
 	//! Returns the precentage of fuel remaining in the tank of the vehicle
