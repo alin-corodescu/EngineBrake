@@ -1,6 +1,7 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
 #include "EngineBrake.h"
+#include "EngineBrakeGameMode.h"
 #include "EngineBrakePawn.h"
 #include "EngineBrakeWheelFront.h"
 #include "EngineBrakeWheelRear.h"
@@ -371,7 +372,10 @@ void AEngineBrakePawn::OnCollision(UPrimitiveComponent * HitComp, AActor * Other
 		GetMesh()->SetVisibility(false);
 
 		// Initiate a game over sequence
-		UGameplayStatics::SetGamePaused(this, true);
+		AEngineBrakeGameMode* GameMode = Cast<AEngineBrakeGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		static FTimerHandle GameOverDelayer;
+		GetWorld()->GetTimerManager().SetTimer(GameOverDelayer, GameMode, &AEngineBrakeGameMode::GameOver, 2.0f);
+		//UGameplayStatics::SetGamePaused(this, true);
 		//OtherActor->Destroy();
 		//this->Destroy();
 	}

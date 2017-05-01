@@ -2,6 +2,7 @@
 
 #include "EngineBrake.h"
 #include "Spawner.h"
+#include "EngineBrakeGameMode.h"
 #include "RoadConstruction/EndlessTrackGenerator.h"
 #include "EngineBrakePawn.h"
 #include "FuelSystem/FuelPickup.h"
@@ -117,8 +118,10 @@ void ASpawner::Tick( float DeltaTime )
 	//UE_LOG(LogTemp, Warning, TEXT("Distance is %f:"),Distance);
 	if (Distance > DISTANCE_THRESHOLD)
 	{
-		// Initiate game over sequence
-		UGameplayStatics::SetGamePaused(this, true);
+		// Initiate a game over sequence
+		AEngineBrakeGameMode* GameMode = Cast<AEngineBrakeGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		static FTimerHandle GameOverDelayer;
+		GetWorld()->GetTimerManager().SetTimer(GameOverDelayer, GameMode, &AEngineBrakeGameMode::GameOver, 2.0f);
 	}
 }
 
