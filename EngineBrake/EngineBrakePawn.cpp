@@ -311,7 +311,14 @@ void AEngineBrakePawn::OnUpShift()
 
 			float ScoreValue = Calculator->ComputeUpshiftScore(GetVehicleMovementComponent()->GetEngineRotationSpeed());
 
-			// Now update the score somehow
+			if (ScoreValue > 0)
+			{
+				PopupString = FText::FromString("Good upshift");
+				// Clear this after 3 sec
+				GetWorld()->GetTimerManager().ClearTimer(PopupCleanerTimerHandle);
+				GetWorld()->GetTimerManager().SetTimer(PopupCleanerTimerHandle, this, &AEngineBrakePawn::ClearPopupMessage, 3.0f);
+			}
+
 			PlayerState->Score += ScoreValue;
 
 			if (GEngine && ScoreValue > 1)
@@ -408,16 +415,22 @@ void AEngineBrakePawn::UpdateHUDStrings()
 	}	
 }
 
+void AEngineBrakePawn::ClearPopupMessage()
+{
+	PopupString = FText::GetEmpty();
+}
+
 bool AEngineBrakePawn::CheckLowSpeedThreshold()
 {
 	int Gear = GetVehicleMovement()->GetCurrentGear();
+
 	if (Gear < 1) return false;
 	//! Translate into km / h 
 	float Speed = GetVehicleMovement()->GetForwardSpeed() * 0.036f;
-
+	
 /*	UE_LOG(LogTemp, Warning, TEXT("Speed check at gear %d and speed %f, threshold being %d"),
 		Gear, Speed, MinGearSpeeds[Gear]);*/
-	return Speed < MinGearSpeeds[Gear];
+	return Speed > 0 && Speed < MinGearSpeeds[Gear];
 }
 
 void AEngineBrakePawn::StallEngine()
@@ -430,6 +443,12 @@ void AEngineBrakePawn::StallEngine()
 	// Score penalty for engine stalling
 	// It's a constant because later in the game progress it will be hard to focus on engine stuff, so let it be less punishing
 	PlayerState->Score -= 100.0f;
+
+	PopupString = FText::FromString("Engine stalled");
+
+	// Clear this after 3 sec
+	GetWorld()->GetTimerManager().ClearTimer(PopupCleanerTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(PopupCleanerTimerHandle, this, &AEngineBrakePawn::ClearPopupMessage, 3.0f);
 
 	//! play some sounds and display something
 	if (GEngine)

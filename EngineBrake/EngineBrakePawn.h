@@ -74,9 +74,13 @@ public:
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FText FuelPrecentageDisplayString;
 
-	/** The current fuel precentage */
+	/** The current score */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FText ScoreDisplayString;
+
+	/** The current pop-up to display */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+	FText PopupString;
 
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	/** The color of the incar gear text in forward gears */
@@ -85,6 +89,7 @@ public:
 	/** The color of the incar gear text when in reverse */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FColor	GearDisplayReverseColor;
+
 
 	/** Are we using incar camera */
 	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly)
@@ -96,6 +101,8 @@ public:
 
 	/** Initial offset of incar camera */
 	FVector InternalCameraOrigin;
+
+	FTimerHandle PopupCleanerTimerHandle;
 
 	bool bHasThrottleInput;
 	// Begin Pawn interface
@@ -169,6 +176,8 @@ private:
 
 	/* Are we on a 'slippery' surface */
 	bool bIsLowFriction;
+
+	void ClearPopupMessage();
 
 	//! Checks if the speed is below the current gear's threshold 
 	/*

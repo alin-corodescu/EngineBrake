@@ -125,6 +125,11 @@ void AEngineBrakeHud::DrawScore()
 
 void AEngineBrakeHud::DrawPopupMessage()
 {
+	AEngineBrakePawn* Vehicle = Cast<AEngineBrakePawn>(GetOwningPawn());
+
+	FCanvasTextItem PopupItem(FVector2D(30, 30), Vehicle->PopupString, HUDFont, FLinearColor::White);
+	PopupItem.Scale = FVector2D(2, 2);
+	Canvas->DrawItem(PopupItem);
 }
 
 void AEngineBrakeHud::DrawFuelLevel()
