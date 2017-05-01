@@ -19,4 +19,20 @@ public:
 	// Begin AHUD interface
 	virtual void DrawHUD() override;
 	// End AHUD interface
+	UPROPERTY()
+	FCanvasIcon EngineOnIcon; //!< Icon used to indicate the engine is running
+
+	UPROPERTY()
+	FCanvasIcon EngineOffIcon; //!< Icon used to indicate the engine is NOT running
+
+	UPROPERTY()
+	FCanvasIcon RPMMeterIcon; //!< Icon used to display the RPM meter
+private:
+	void DrawScore();
+	void DrawPopupMessage();
+	void DrawFuelLevel();
+	void DrawEngineIndicator();
+	void DrawGear();
+	void DrawSpeed();
+	void DrawRPM();
 };

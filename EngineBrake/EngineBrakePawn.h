@@ -11,6 +11,7 @@ UCLASS(config=Game)
 class AEngineBrakePawn : public AWheeledVehicle
 {
 	friend class ASpawner;
+	friend class AVehicleAIPawn;
 	GENERATED_BODY()
 
 	/** Spring arm that will offset the camera */
@@ -44,11 +45,7 @@ class AEngineBrakePawn : public AWheeledVehicle
 	//! Pointer to the fuel system component used by this
 	class UFuelSystemComponent* FuelSystem;
 
-	//! Flag specifying whether or not the engine is running
-	/**
-	* Used to simulate real life stalling of the engine when the RPM is too low
-	*/
-	bool bRunningEngine;
+
 
 	friend class UFuelSystemComponent;
 
@@ -60,8 +57,6 @@ class AEngineBrakePawn : public AWheeledVehicle
 	
 public:
 	AEngineBrakePawn();
-
-	~AEngineBrakePawn();
 
 	/** The current speed as a string eg 10 km/h */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
@@ -147,6 +142,12 @@ public:
 	static const FName LookRightBinding;
 
 	void SetSpawner(ASpawner* Spawner);
+
+	//! Flag specifying whether or not the engine is running
+	/**
+	* Used to simulate real life stalling of the engine when the RPM is too low
+	*/
+	bool bRunningEngine;
 
 private:
 	//! Minimum threshold speeds for different gears

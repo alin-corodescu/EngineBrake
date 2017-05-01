@@ -34,8 +34,6 @@ private:
 public:
 	AVehicleAIPawn();
 
-	~AVehicleAIPawn();
-	
 	// Begin Actor interface
 	virtual void Tick(float Delta) override;
 

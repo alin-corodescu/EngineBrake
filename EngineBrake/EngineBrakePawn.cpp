@@ -158,14 +158,6 @@ AEngineBrakePawn::AEngineBrakePawn()
 	}
 }
 
-AEngineBrakePawn::~AEngineBrakePawn()
-{
-	if (Explosion && ExplosionSound) {
-		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
-		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
-	}
-}
-
 void AEngineBrakePawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
@@ -370,6 +362,9 @@ void AEngineBrakePawn::OnCollision(UPrimitiveComponent * HitComp, AActor * Other
 		//FVector CameraPosition = GetActorLocation() + FVector(0, 0, 2000);
 		//Camera->SetWorldLocationAndRotation(CameraPosition, (CameraPosition - GetActorLocation()).Rotation());
 		GetMesh()->SetVisibility(false);
+
+		// Initiate a game over sequence
+		UGameplayStatics::SetGamePaused(this, true);
 		//OtherActor->Destroy();
 		//this->Destroy();
 	}

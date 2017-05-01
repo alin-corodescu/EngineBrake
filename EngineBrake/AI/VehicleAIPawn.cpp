@@ -20,8 +20,20 @@ void AVehicleAIPawn::OnHit(UPrimitiveComponent * HitComp, AActor * OtherActor, U
 		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
 		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
 		GetMesh()->SetVisibility(false);
-		this->Destroy();
+		AVehicleAIPawn* OtherVehicle = Cast<AVehicleAIPawn>(OtherActor);
+		if (OtherVehicle)
+		{
+			OtherVehicle->GetMesh()->SetVisibility(false);
+		}
+		//this->Destroy();
 		//OtherActor->Destroy();
+	}
+	if (OtherActor->IsA(AEngineBrakePawn::StaticClass()))
+	{
+		// Hack to solve the collision problems
+		AEngineBrakePawn* OtherVehicle = Cast<AEngineBrakePawn>(OtherActor);
+		// This will produce a endless loop
+		OtherVehicle->OnCollision(NULL, this, NULL, FVector::ZeroVector, FHitResult());
 	}
 }
 
@@ -100,13 +112,6 @@ AVehicleAIPawn::AVehicleAIPawn()
 	}
 }
 
-AVehicleAIPawn::~AVehicleAIPawn()
-{
-	if (Explosion && ExplosionSound) {
-		UGameplayStatics::SpawnEmitterAtLocation(this, Explosion, GetActorLocation(), GetActorRotation(), true);
-		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
-	}
-}
 
 void AVehicleAIPawn::BeginPlay()
 {
