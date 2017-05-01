@@ -191,6 +191,8 @@ private:
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UAudioComponent* EngineSoundComponent;
 
+	bool bOnTrack;
+
 
 public:
 	/** Returns SpringArm subobject **/

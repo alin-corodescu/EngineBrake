@@ -263,6 +263,8 @@ void AEngineBrakePawn::Tick(float Delta)
 	//	bHasThrottleInput = true;
 	//else bHasThrottleInput = false;
 
+	// Check if we are still on track
+	
 
 	if (bRunningEngine && CheckLowSpeedThreshold()) 
 	{

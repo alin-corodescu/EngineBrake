@@ -7,14 +7,24 @@
 #include "FuelSystem/FuelPickup.h"
 #include "Classes/Components/SplineComponent.h"
 #include "AI/VehicleAIPawn.h"
+#include "Score/ScoreCalculator.h"
+#include "PawnFollowingKillZVolume.h"
 
 #define FUEL_OFFSET 10000.0f
 #define VEHICLE_OFFSET 20000.0f
 #define VEHICLE_Z_OFFSET 200
+#define DISTANCE_THRESHOLD 5000.0f
 void ASpawner::SpawnFuelPickup()
 {
 	// Spawn a Fuel pickup 
 	FVector Location = GenerateSpawningLocation(FUEL_OFFSET);
+	//
+	ScoreCalculator* Calculator = ScoreCalculator::GetInstance();
+
+	Calculator->ScoreMultiplier += 0.3f;
+	TrackGenerator->RebuildingInterval -= 0.5f;
+	if (TrackGenerator->RebuildingInterval < 0.5f)
+		TrackGenerator->RebuildingInterval = 0.5f;
 
 	World->SpawnActor<AFuelPickup>(Location, ComputeRotation(Location));
 }
@@ -63,8 +73,7 @@ FRotator ASpawner::ComputeRotation(FVector Location)
 ASpawner::ASpawner()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
-
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 // Called when the game starts or when spawned
@@ -87,6 +96,9 @@ void ASpawner::BeginPlay()
 	PlayerPawn->SetActorLocation(FVector(5000, 0, 200), false);
 	PlayerPawn->SetActorRotation(FRotator::ZeroRotator);
 
+	APawnFollowingKillZVolume* KillZVolume = World->SpawnActor<APawnFollowingKillZVolume>(
+		FVector(0, 0, -10000), FRotator::ZeroRotator);
+
 	PlayerPawn->SetSpawner(this);
 
 	//UE_LOG(LogTemp, Warning, TEXT("PlayerPawn was spawned"));
@@ -99,6 +111,14 @@ void ASpawner::BeginPlay()
 void ASpawner::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-
+	// Check if the pawn is still on track
+	FVector SplineLocation = TrackGenerator->GetSplineComponent()->FindLocationClosestToWorldLocation(PlayerPawn->GetActorLocation(),ESplineCoordinateSpace::World);
+	float Distance = FVector::Dist(SplineLocation, PlayerPawn->GetActorLocation());
+	//UE_LOG(LogTemp, Warning, TEXT("Distance is %f:"),Distance);
+	if (Distance > DISTANCE_THRESHOLD)
+	{
+		// Initiate game over sequence
+		UGameplayStatics::SetGamePaused(this, true);
+	}
 }
 
